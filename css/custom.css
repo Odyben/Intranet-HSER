@@ -1,0 +1,3085 @@
+/* ============================================
+   INTRANET HOSPITAL SERIAN — Portal Kerajaan
+   Design: Gaya Jabatan Premier Sarawak
+   Jabatan Kesihatan Negeri Sarawak
+   ============================================ */
+
+/* --- CSS Variables (Gov Portal Palette) --- */
+:root {
+    --navy-dark: #001a3a;
+    --navy-mid: #002855;
+    --navy: #003366;
+    --blue: #00508F;
+    --blue-light: #1a6bb5;
+    --gold: #C9952E;
+    --gold-light: #d4a843;
+    --green: #2e7d32;
+    --amber: #e65100;
+    --red: #c62828;
+    --bg-main: #f5f6f8;
+    --bg-light: #eef1f5;
+    --surface: #FFFFFF;
+    --text-primary: #222222;
+    --text-secondary: #555555;
+    --text-light: #888888;
+    --border-color: #e0e0e0;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.1);
+    --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --transition: 0.25s ease;
+    --max-width: 1280px;
+}
+
+/* --- Dark Mode ---
+   The site uses hundreds of ad-hoc inline colors (not just the CSS
+   variables above), so swapping variables alone left large parts of the
+   page with unreadable text (e.g. light text inherited onto a still-white
+   inline background). Instead we invert the whole page's rendered colors,
+   which preserves every element's original contrast ratio no matter how
+   its color was set. hue-rotate(180deg) keeps blues looking roughly blue
+   instead of the orange a plain invert produces.
+   Excluded on purpose:
+   - .kkm-header-overlay: filter on an ancestor turns it into the
+     containing block for fixed-position descendants, which would knock
+     the header (and any fixed toast/modal inside a filtered ancestor)
+     loose from the viewport while scrolling.
+   - .hero-banner / .page-header: big photographic banners with text
+     baked into the image itself — inverting them turns the photo into a
+     garish negative instead of just retheming UI chrome, so they're left
+     exactly as they look in light mode.
+   - <img>/<video>/<iframe>: counter-inverted so photos and logos still
+     look like photos instead of film negatives. */
+body.dark-mode {
+    background: #17191d;
+    color-scheme: dark;
+}
+
+/* Top-level page chrome gets inverted (dark page, light standalone text). */
+body.dark-mode > *:not(.kkm-header-overlay, .hero-banner, .page-header, .gov-footer) {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* "Cards" — a real soft dark-grey surface (not the near-black a raw filter
+   invert produces from a white card, and not stark white either), with a
+   visible border so panels read as slightly raised instead of flat. They're
+   nested inside an already-inverted ancestor, so re-applying the identical
+   filter cancels it back to normal orientation (two 100% inversions are an
+   exact self-inverse) — our own background/border/text then apply cleanly
+   on top, giving predictable chosen colors instead of whatever an ad-hoc
+   inline color happens to invert into. Redefining the theme variables here
+   (not globally — that would fight the blanket invert above) means anything
+   inside a card that already uses var(--text-primary)/var(--border-color)/
+   etc. picks up matching dark-mode colors automatically via inheritance. */
+body.dark-mode :is(.kkm-news-card, .kkm-service-card, .staff-card, .phone-mini-card,
+    .booking-card, .room-card, .section-card, .kkm-sidebar-box, .dash-list-item, .stat-tile,
+    .stat-card-portal, .doc-table, .dir-search, .dir-tab, .filter-tab,
+    .doc-item, .borang-item, .schedule-item, .room-status-item,
+    .buletin-card, .quick-link-item, .modal-content,
+    div[style*="background:white"], div[style*="background: white"],
+    div[style*="background:#fff"], div[style*="background: #fff"],
+    div[style*="background:#ffffff"], div[style*="background: #ffffff"],
+    div[style*="background:#f8fafc"], div[style*="background: #f8fafc"],
+    section[style*="background:white"], section[style*="background: white"],
+    section[style*="background:#fff"], section[style*="background: #fff"],
+    section[style*="background:#ffffff"], section[style*="background: #ffffff"],
+    section[style*="background:#f8fafc"], section[style*="background: #f8fafc"]) {
+    filter: hue-rotate(-180deg) invert(1) !important;
+    background: #f5f0e1 !important;
+    color: #2c2a25;
+    --text-primary: #2c2a25;
+    --text-secondary: #4a4639;
+    --text-light: #6b6453;
+    --border-color: #d9d0b8;
+    --bg-light: #ede7d4;
+    --surface: #f5f0e1;
+}
+
+/* --- Kad DI DALAM kad ---
+   Penapis pembatal di atas hanya betul untuk kad paling LUAR. Kad yang
+   bersarang (contoh .room-card dalam .booking-card, atau .doc-table dalam
+   pembalut div[style="background:white"]) akan memakainya sekali lagi di
+   atas konteks yang induknya sudah betulkan — penyongsangan ketiga, dan kad
+   bertukar hitam pekat. Anak tidak perlu membatalkan apa-apa kerana induknya
+   sudah melakukannya, jadi matikan penapis untuk SEBARANG kad yang berada di
+   dalam kad lain. Senarai yang sama digunakan pada kedua-dua belah supaya
+   tiada gandingan induk/anak yang terlepas. */
+body.dark-mode :is(.kkm-news-card, .kkm-service-card, .staff-card, .phone-mini-card,
+    .booking-card, .room-card, .section-card, .kkm-sidebar-box, .dash-list-item, .stat-tile,
+    .stat-card-portal, .doc-table, .dir-search, .dir-tab, .filter-tab,
+    .doc-item, .borang-item, .schedule-item, .room-status-item,
+    .buletin-card, .quick-link-item, .modal-content,
+    div[style*="background:white"], div[style*="background: white"],
+    div[style*="background:#fff"], div[style*="background: #fff"],
+    div[style*="background:#ffffff"], div[style*="background: #ffffff"],
+    div[style*="background:#f8fafc"], div[style*="background: #f8fafc"],
+    section[style*="background:white"], section[style*="background: white"],
+    section[style*="background:#fff"], section[style*="background: #fff"],
+    section[style*="background:#ffffff"], section[style*="background: #ffffff"],
+    section[style*="background:#f8fafc"], section[style*="background: #f8fafc"])
+    :is(.kkm-news-card, .kkm-service-card, .staff-card, .phone-mini-card,
+    .booking-card, .room-card, .section-card, .kkm-sidebar-box, .dash-list-item, .stat-tile,
+    .stat-card-portal, .doc-table, .dir-search, .dir-tab, .filter-tab,
+    .doc-item, .borang-item, .schedule-item, .room-status-item,
+    .buletin-card, .quick-link-item, .modal-content,
+    div[style*="background:white"], div[style*="background: white"],
+    div[style*="background:#fff"], div[style*="background: #fff"],
+    div[style*="background:#ffffff"], div[style*="background: #ffffff"],
+    div[style*="background:#f8fafc"], div[style*="background: #f8fafc"]) {
+    filter: none !important;
+}
+
+/* Antara kad bersarang itu, yang berbentuk "item boleh klik" diberi
+   permukaan putih dengan garis tepi dan bayang supaya ia nampak timbul di
+   atas permukaan krim induknya, bukan rata dan hilang. */
+body.dark-mode :is(.booking-card, .section-card, .kkm-sidebar-box, .modal-content,
+    .stat-card-portal, .kkm-news-card,
+    div[style*="background:white"], div[style*="background: white"],
+    div[style*="background:#fff"], div[style*="background: #fff"],
+    div[style*="background:#ffffff"], div[style*="background: #ffffff"])
+    :is(.room-card, .room-status-item, .schedule-item, .doc-item, .borang-item,
+        .dash-list-item, .stat-tile) {
+    background: #ffffff !important;
+    border: 1px solid #e6dfc9 !important;
+    box-shadow: 0 2px 5px rgba(60, 50, 25, 0.10), 0 1px 2px rgba(60, 50, 25, 0.06) !important;
+}
+
+/* Elevation & borders for cards */
+body.dark-mode :is(.kkm-news-card, .kkm-service-card, .staff-card, .phone-mini-card,
+    .booking-card, .room-card, .section-card, .kkm-sidebar-box,
+    .stat-card-portal, .doc-table, .dir-search,
+    .doc-item, .buletin-card,
+    div[style*="background:white"], div[style*="background: white"],
+    div[style*="background:#fff"], div[style*="background: #fff"],
+    div[style*="background:#ffffff"], div[style*="background: #ffffff"],
+    section[style*="background:white"], section[style*="background: white"]) {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid #d9d0b8 !important;
+    border-radius: 12px !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+body.dark-mode :is(.kkm-news-card, .kkm-service-card, .staff-card, .phone-mini-card,
+    .booking-card, .room-card, .stat-card-portal):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 3px 10px rgba(0, 0, 0, 0.2) !important;
+    border-color: #c4b896 !important;
+}
+body.dark-mode .kkm-news-card {
+    overflow: hidden;
+}
+
+/* Global Dark Mode Placeholders */
+body.dark-mode ::placeholder,
+body.dark-mode ::-webkit-input-placeholder,
+body.dark-mode ::-moz-placeholder {
+    color: #756f5e !important;
+    opacity: 1 !important;
+}
+
+/* Form controls — standalone inputs (not inside a card) */
+body.dark-mode input[type="text"], body.dark-mode input[type="search"],
+body.dark-mode input[type="date"], body.dark-mode input[type="time"],
+body.dark-mode input[type="number"], body.dark-mode input[type="email"],
+body.dark-mode input[type="tel"], body.dark-mode input[type="password"],
+body.dark-mode select, body.dark-mode textarea,
+body.dark-mode .form-input, body.dark-mode .form-select, body.dark-mode .form-textarea {
+    filter: hue-rotate(-180deg) invert(1) !important;
+    background: #f5f0e1 !important;
+    border-color: #d9d0b8 !important;
+    color: #2c2a25 !important;
+}
+
+/* Inputs INSIDE already-filtered cards (cancel double/triple invert) */
+body.dark-mode :is(.kkm-news-card, .kkm-service-card, .staff-card, .phone-mini-card,
+    .booking-card, .room-card, .section-card, .kkm-sidebar-box, .dash-list-item, .stat-tile,
+    .stat-card-portal, .doc-table, .dir-search, .dir-tab, .filter-tab,
+    .doc-item, .borang-item, .schedule-item, .room-status-item,
+    .buletin-card, .quick-link-item, .modal-content,
+    div[style*="background:white"], div[style*="background: white"],
+    div[style*="background:#fff"], div[style*="background: #fff"],
+    div[style*="background:#ffffff"], div[style*="background: #ffffff"],
+    div[style*="background:#f8fafc"], div[style*="background: #f8fafc"])
+    :is(input, select, textarea, .form-input, .form-select, .form-textarea) {
+    filter: none !important;
+    background: #ede7d4 !important;
+    border-color: #c4b896 !important;
+    color: #2c2a25 !important;
+}
+
+/* Search containers (.dir-search & .page-content .utility-search) */
+body.dark-mode .dir-search,
+body.dark-mode .page-content .utility-search {
+    filter: hue-rotate(-180deg) invert(1) !important;
+    background: #f5f0e1 !important;
+    border: 1px solid #d9d0b8 !important;
+    color: #2c2a25 !important;
+}
+
+body.dark-mode :is(.dir-search, .page-content .utility-search) input {
+    filter: none !important;
+    background: transparent !important;
+    color: #2c2a25 !important;
+}
+
+body.dark-mode :is(.dir-search, .page-content .utility-search) input::placeholder {
+    color: #756f5e !important;
+    opacity: 1 !important;
+}
+
+body.dark-mode :is(.dir-search, .page-content .utility-search) svg {
+    color: #6b6453 !important;
+}
+
+/* Any nested element inside a card that has its own light background
+   (e.g. room-features badge, schedule-item background) should also
+   NOT get re-inverted — just use khaki tones directly. */
+body.dark-mode :is(.booking-card, .room-card, .section-card,
+    [style*="background:white"], [style*="background: white"])
+    :is(.room-features, .schedule-item, .room-status-item) {
+    filter: none !important;
+    background: #ede7d4 !important;
+    color: #4a4639 !important;
+}
+
+/* Room-features badge (standalone, not nested inside a card context) */
+body.dark-mode .room-features {
+    filter: hue-rotate(-180deg) invert(1) !important;
+    background: #ede7d4 !important;
+    color: #4a4639 !important;
+}
+
+/* Document/staff table row hover is set directly via JS inline style
+   (a light hex, not a CSS class), so it needs an !important override here
+   to swap to a dark-mode-appropriate hover shade. */
+body.dark-mode .doc-table tbody tr:hover {
+    background: #ede7d4 !important;
+}
+
+/* .stat-tile's number/label/footer/border were hand-tuned with literal hex
+   colors (not var()), from before dark mode existed — a plain var()
+   redefinition has no effect on them, and with a dark card background
+   #0f172a-on-dark reads as nearly invisible. Override them directly. */
+body.dark-mode .stat-tile-value { color: #2c2a25 !important; }
+body.dark-mode .stat-tile-label { color: #4a4639 !important; }
+body.dark-mode .stat-tile-footer { color: #6b6453 !important; border-top-color: #d9d0b8 !important; }
+body.dark-mode .stat-tile { border-color: #d9d0b8 !important; }
+
+/* Same issue as .stat-tile above — these headings/values use the brand
+   var(--navy-*)/var(--blue) directly (meant for light backgrounds), not the
+   generic var(--text-*) tokens, so they don't pick up the redefinition
+   above and stay dark-on-dark. */
+body.dark-mode .stat-value { color: #2c2a25 !important; }
+body.dark-mode .kkm-service-title,
+body.dark-mode .kkm-news-title {
+    color: #2c2a25 !important;
+}
+body.dark-mode .kkm-service-card:hover .kkm-service-title,
+body.dark-mode .kkm-news-card:hover .kkm-news-title {
+    color: #00508F !important;
+}
+
+/* Galeri Aktiviti's photo carousel (.mzaCarousel) is deliberately
+   dark-themed at all times, independent of site light/dark mode — a photo
+   backdrop with light text baked into its own design. Cancel the inherited
+   blanket invert so it keeps rendering as designed instead of getting
+   double-dark-inverted into the washed-out/hazy look a raw invert produces
+   on real photographs. */
+body.dark-mode .mzaCarousel {
+    filter: hue-rotate(-180deg) invert(1) !important;
+}
+
+/* Section headings (e.g. "Statistik Semasa", "Galeri Aktiviti") use
+   var(--navy-dark) for a crisp dark navy in light mode; run through the
+   blanket invert that becomes a washed dusty blue instead of a clean
+   bright color. Give them an explicit, deliberate light color instead. */
+body.dark-mode .kkm-section-title {
+    filter: hue-rotate(-180deg) invert(1) !important;
+    color: #f5f0e1 !important;
+}
+
+/* Standalone photos/logos (not already inside an excluded card/header/
+   footer/banner above) — counter-inverted so they still look like photos. */
+body.dark-mode img:not(.kkm-header-overlay img, .hero-banner img, .page-header img,
+    .gov-footer img, .kkm-service-card img),
+body.dark-mode video,
+body.dark-mode iframe {
+    filter: hue-rotate(-180deg) invert(1);
+}
+
+/* Footer: kept out of the invert above (its own navy would otherwise land
+   on an odd hue-rotated tint), given an explicit khaki-card look instead,
+   matching the other cards. */
+body.dark-mode .gov-footer {
+    background: #f5f0e1;
+    color: #2c2a25;
+}
+body.dark-mode .gov-footer .footer-address,
+body.dark-mode .gov-footer .footer-links a,
+body.dark-mode .gov-footer .footer-copyright {
+    color: #4a4639;
+}
+body.dark-mode .gov-footer .footer-address strong {
+    color: #2c2a25;
+}
+body.dark-mode .gov-footer .footer-links a:hover {
+    color: var(--navy);
+}
+body.dark-mode .gov-footer .footer-bottom {
+    border-top-color: #d9d0b8;
+}
+
+/* --- Base Reset & Typography --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: color var(--transition);
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,40,85,0.25); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,40,85,0.4); }
+
+/* ============================================
+   UTILITY BAR (Paling Atas)
+   ============================================ */
+
+/* --- Profile Dropdown Menu --- */
+.profile-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-dropdown-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.3rem 0.8rem 0.3rem 0.3rem;
+    border-radius: 20px;
+    transition: background var(--transition);
+}
+
+.profile-dropdown-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.profile-dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 120%;
+    background-color: var(--surface);
+    min-width: 200px;
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-md);
+    z-index: 999;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.profile-dropdown-content.show {
+    display: block;
+    animation: fadeInDown 0.2s ease;
+}
+
+.dropdown-item {
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background-color: var(--navy) !important;
+    color: #ffffff !important;
+}
+.dropdown-item:hover svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+}
+
+/* Toggle Switch for Dark Mode */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 18px;
+    margin-left: auto;
+}
+
+.toggle-switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #27AE60;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(16px);
+}
+
+/* Theme Picker (Cerah / Gelap / Sistem) */
+.dropdown-item.theme-picker-item {
+    display: block;
+    cursor: default;
+}
+.dropdown-item.theme-picker-item:hover {
+    background-color: transparent;
+}
+.theme-picker-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+.theme-picker {
+    display: flex;
+    gap: 0.35rem;
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+    padding: 3px;
+}
+.theme-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.45rem 0.3rem;
+    border: none;
+    border-radius: calc(var(--radius-md) - 2px);
+    background: transparent;
+    color: #4a5568 !important;
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.theme-option svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+}
+.theme-option:hover:not(.active) {
+    background: rgba(0, 51, 102, 0.1);
+    color: var(--navy) !important;
+}
+.theme-option.active {
+    background: var(--navy) !important;
+    color: #ffffff !important;
+    box-shadow: var(--shadow-sm);
+}
+
+.utility-bar {
+    background: var(--navy-dark);
+    color: white;
+    padding: 0.5rem 0;
+    font-size: 0.78rem;
+    position: relative;
+    z-index: 100;
+}
+
+.utility-bar .container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.utility-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.utility-brand-text h1 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: rgba(255,255,255,0.9);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.utility-brand-text span {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.6);
+    font-weight: 400;
+}
+
+/* Search in utility bar */
+.utility-search {
+    flex: 1;
+    max-width: 400px;
+    position: relative;
+}
+
+.utility-search input {
+    width: 100%;
+    padding: 0.45rem 0.85rem 0.45rem 2.2rem;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-size: 0.78rem;
+    font-family: inherit;
+    outline: none;
+    transition: all var(--transition);
+}
+
+.utility-search input::placeholder {
+    color: rgba(255,255,255,0.5);
+}
+
+.utility-search input:focus {
+    background: rgba(255,255,255,0.15);
+    border-color: var(--gold);
+}
+
+.utility-search svg {
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    color: rgba(255,255,255,0.5);
+}
+
+/* Utility right side */
+.utility-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.utility-actions a,
+.utility-actions button {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.75rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.3rem 0.6rem;
+    border-radius: 3px;
+    transition: all var(--transition);
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.utility-actions a:hover,
+.utility-actions button:hover {
+    color: white;
+    background: rgba(255,255,255,0.1);
+}
+
+.utility-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.7rem;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.utility-user:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+.utility-user-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: white;
+    overflow: hidden;
+}
+
+.utility-user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.utility-user-name {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.85);
+    font-weight: 500;
+}
+
+/* ============================================
+   KKM OFFICIAL PORTAL NAV BAR (Sticky, Glass)
+   ============================================ */
+.kkm-header-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.kkm-header-overlay.scrolled {
+    background: rgba(15, 23, 42, 0.95) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.kkm-header-overlay .utility-bar {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 0;
+}
+
+.kkm-header-overlay .utility-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.kkm-header-overlay .utility-brand img {
+    height: 70px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.kkm-header-overlay .utility-brand-text h1 {
+    color: #ffffff !important;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+}
+
+.kkm-header-overlay .utility-brand-text span {
+    color: #e2e8f0 !important;
+    font-size: 0.85rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+}
+
+.kkm-header-overlay .main-nav {
+    background: transparent !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+.kkm-header-overlay .main-nav .nav-menu {
+    justify-content: center;
+    width: 100%;
+}
+
+.kkm-header-overlay .main-nav .nav-menu > li > a {
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    padding: 0.9rem 1.2rem;
+    border-bottom: 3px solid transparent;
+}
+
+.kkm-header-overlay .main-nav .nav-menu > li > a:hover,
+.kkm-header-overlay .main-nav .nav-menu > li > a.active {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-bottom-color: #ffd700 !important;
+}
+
+/* The hamburger icon itself defaults to dark navy, which is invisible
+   against this header's transparent-over-photo state (before scrolling) —
+   match it to the white nav links so it stays visible either way. */
+.kkm-header-overlay .mobile-nav-toggle {
+    color: #ffffff !important;
+}
+
+.main-nav .container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.main-nav-brand {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.main-nav-brand img {
+    height: 75px;
+    object-fit: contain;
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    gap: 0;
+}
+
+.nav-menu > li {
+    position: relative;
+}
+
+.nav-menu > li > a {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 1rem 1.15rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--navy-mid);
+    transition: all var(--transition);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -3px;
+    white-space: nowrap;
+}
+
+.nav-menu > li > a:hover,
+.nav-menu > li > a.active {
+    color: var(--blue);
+    border-bottom-color: var(--gold);
+    background: rgba(0, 80, 143, 0.03);
+}
+
+.nav-menu > li > a svg {
+    width: 12px;
+    height: 12px;
+    transition: transform var(--transition);
+}
+
+.nav-menu > li:hover > a svg {
+    transform: rotate(180deg);
+}
+
+/* Dropdown */
+.nav-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-top: 3px solid var(--gold);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    min-width: 240px;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: all 0.2s ease;
+    z-index: 100;
+    padding: 0.5rem 0;
+}
+
+.nav-menu > li:hover > .nav-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.nav-dropdown a {
+    display: block;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    transition: all var(--transition);
+}
+
+.nav-dropdown a:hover {
+    background: var(--bg-light);
+    color: var(--blue);
+    padding-left: 1.5rem;
+}
+
+/* Mobile menu toggle */
+.mobile-nav-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: var(--navy-mid);
+}
+
+.mobile-nav-toggle svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* ============================================
+   HERO BANNER
+   ============================================ */
+.hero-banner {
+    position: relative;
+    min-height: 520px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0b1329 0%, #101f42 100%);
+}
+
+.hero-slideshow {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.hero-slide {
+    position: absolute;
+    inset: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1.2s ease-in-out;
+}
+
+.hero-slide.active {
+    opacity: 1;
+}
+
+.hero-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 15, 30, 0.35); /* Lebih transparent dan kurang biru */
+    z-index: 1;
+}
+
+/* Slideshow Buttons */
+.slide-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+}
+
+.slide-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.slide-btn.prev {
+    left: 20px;
+}
+
+.slide-btn.next {
+    right: 20px;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    padding: 2rem 1.5rem;
+}
+
+.hero-logo {
+    width: 130px;
+    height: 130px;
+    margin: 0 auto 1.5rem;
+    animation: heroFadeIn 1s ease;
+}
+
+.hero-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+}
+
+.hero-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    margin-bottom: 0.35rem;
+}
+
+.hero-subtitle {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.8);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* Decorative gold bar under hero */
+.hero-gold-bar {
+    height: 5px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+}
+
+@keyframes heroFadeIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ============================================
+   SECTION CONTAINERS
+   ============================================ */
+.section {
+    padding: 3rem 1.5rem;
+}
+
+.section .container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--navy-mid);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.section-divider {
+    width: 60px;
+    height: 3px;
+    background: var(--gold);
+    margin: 0 auto 2rem;
+    border-radius: 2px;
+}
+
+.section-alt {
+    background: white;
+}
+
+/* ============================================
+   INFO LINKS SECTION (Pautan Rasmi)
+   ============================================ */
+.info-links-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 3rem;
+}
+
+.info-link-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all var(--transition);
+    cursor: pointer;
+}
+
+.info-link-item:hover {
+    padding-left: 0.5rem;
+    color: var(--blue);
+}
+
+.info-link-item svg {
+    width: 16px;
+    height: 16px;
+    color: var(--gold);
+    flex-shrink: 0;
+}
+
+.info-link-item span {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* ============================================
+   LEADER / PROFILE SECTION
+   ============================================ */
+.leader-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+.leader-photo-wrap {
+    display: flex;
+    justify-content: center;
+}
+
+.leader-photo {
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    border: 5px solid var(--blue);
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,51,102,0.2);
+    position: relative;
+}
+
+.leader-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.leader-photo-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--navy-mid), var(--blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 4rem;
+    font-weight: 700;
+}
+
+.leader-info {
+    padding: 1rem 0;
+}
+
+.leader-quote {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+    position: relative;
+    padding-left: 1.5rem;
+    border-left: 3px solid var(--gold);
+}
+
+.leader-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--navy-mid);
+    margin-bottom: 0.2rem;
+}
+
+.leader-title {
+    font-size: 0.82rem;
+    color: var(--text-light);
+}
+
+/* Buletin box */
+.buletin-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+}
+
+.buletin-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.buletin-card-img {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.buletin-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.buletin-card-body {
+    padding: 1rem;
+}
+
+.buletin-card-body h4 {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--navy-mid);
+    margin-bottom: 0.3rem;
+}
+
+.buletin-card-body p {
+    font-size: 0.78rem;
+    color: var(--text-light);
+}
+
+/* ============================================
+   NEWS / BERITA SECTION
+   ============================================ */
+.news-section {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+    color: white;
+    padding: 3rem 1.5rem;
+}
+
+.news-section .section-title {
+    color: white;
+}
+
+.news-section .section-divider {
+    background: var(--gold);
+}
+
+/* News tabs */
+.news-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.news-tab {
+    padding: 0.5rem 1.5rem;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.news-tab:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.news-tab.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--navy-dark);
+}
+
+/* News cards grid */
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    max-width: var(--max-width);
+    margin: 0 auto;
+}
+
+.news-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition);
+    cursor: pointer;
+}
+
+.news-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.news-card-img {
+    width: 100%;
+    height: 170px;
+    background: var(--bg-light);
+    overflow: hidden;
+}
+
+.news-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.news-card:hover .news-card-img img {
+    transform: scale(1.05);
+}
+
+.news-card-img-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #e8edf2 0%, #d1d9e6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.news-card-img-placeholder svg {
+    width: 40px;
+    height: 40px;
+    color: #b0bec5;
+}
+
+.news-card-body {
+    padding: 1rem 1.15rem;
+}
+
+.news-card-date {
+    font-size: 0.72rem;
+    color: var(--text-light);
+    margin-bottom: 0.4rem;
+}
+
+.news-card-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 0.4rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.news-card-excerpt {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ============================================
+   QUICK LINKS (Pautan Pantas)
+   ============================================ */
+.quick-links-section {
+    background: white;
+    padding: 3rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.quick-links-grid {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+    max-width: var(--max-width);
+    margin: 0 auto;
+}
+
+.quick-link-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: all var(--transition);
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    min-width: 100px;
+}
+
+.quick-link-item:hover {
+    background: var(--bg-light);
+    transform: translateY(-3px);
+}
+
+.quick-link-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--bg-light);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+}
+
+.quick-link-item:hover .quick-link-icon {
+    background: var(--navy-mid);
+    border-color: var(--navy-mid);
+}
+
+.quick-link-icon svg {
+    width: 24px;
+    height: 24px;
+    color: var(--navy-mid);
+    transition: color var(--transition);
+}
+
+.quick-link-item:hover .quick-link-icon svg {
+    color: white;
+}
+
+.quick-link-icon img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+
+.quick-link-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* ============================================
+   GOVERNMENT FOOTER
+   ============================================ */
+.gov-footer {
+    background: var(--navy-mid);
+    color: rgba(255,255,255,0.85);
+    padding: 2.5rem 1.5rem 1.5rem;
+}
+
+.gov-footer .container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.footer-brand {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.footer-brand img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.footer-brand-text h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: white;
+}
+
+.footer-brand-text span {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.7);
+}
+
+.footer-address {
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.85);
+}
+
+.footer-address strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.footer-heading {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.footer-links {
+    list-style: none;
+}
+
+.footer-links li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.8);
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.footer-links a:hover {
+    color: white;
+    padding-left: 0.3rem;
+}
+
+.footer-links a::before {
+    content: '›';
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.15);
+    padding-top: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.footer-copyright {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.6);
+}
+
+.footer-social {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.footer-social a {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+}
+
+.footer-social a:hover {
+    background: var(--gold);
+}
+
+.footer-social a svg {
+    width: 14px;
+    height: 14px;
+    color: rgba(255,255,255,0.6);
+}
+
+.footer-social a:hover svg {
+    color: var(--navy-dark);
+}
+
+/* ============================================
+   STAT CARDS (for portal use)
+   ============================================ */
+.stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.85rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card-portal {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+    border-top: 3px solid transparent;
+}
+
+.stat-card-portal:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.stat-card-portal.blue { border-top-color: var(--blue); }
+.stat-card-portal.green { border-top-color: var(--green); }
+.stat-card-portal.amber { border-top-color: var(--amber); }
+.stat-card-portal.red { border-top-color: var(--red); }
+
+.stat-card-portal .stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+}
+
+.stat-card-portal .stat-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.stat-card-portal.blue .stat-icon { background: rgba(0,80,143,0.1); color: var(--blue); }
+.stat-card-portal.green .stat-icon { background: rgba(46,125,50,0.1); color: var(--green); }
+.stat-card-portal.amber .stat-icon { background: rgba(230,81,0,0.1); color: var(--amber); }
+.stat-card-portal.red .stat-icon { background: rgba(198,40,40,0.1); color: var(--red); }
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--navy-mid);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+/* ============================================
+   KKM OVERLAY HEADER (Transparent / Glass Navbar)
+   ============================================ */
+.kkm-header-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.kkm-header-overlay.scrolled {
+    background: rgba(15, 23, 42, 0.95) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.kkm-header-overlay .utility-bar {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 0;
+}
+
+.kkm-header-overlay .utility-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.kkm-header-overlay .utility-brand img {
+    height: 70px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.kkm-header-overlay .utility-brand-text h1 {
+    color: #ffffff !important;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+}
+
+.kkm-header-overlay .utility-brand-text span {
+    color: #e2e8f0 !important;
+    font-size: 0.85rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+}
+
+.kkm-header-overlay .main-nav {
+    background: transparent !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+.kkm-header-overlay .main-nav .nav-menu {
+    justify-content: center;
+    width: 100%;
+}
+
+.kkm-header-overlay .main-nav .nav-menu > li > a {
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    padding: 0.9rem 1.2rem;
+    border-bottom: 3px solid transparent;
+}
+
+.kkm-header-overlay .main-nav .nav-menu > li > a:hover,
+.kkm-header-overlay .main-nav .nav-menu > li > a.active {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-bottom-color: #ffd700 !important;
+}
+
+/* ============================================
+   SUB-PAGE LAYOUT (Dokumen, Borang, Berita)
+   ============================================ */
+.page-header {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(0, 80, 143, 0.75) 100%);
+    color: white;
+    padding: 180px 1.5rem 4.5rem;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Page-specific header images */
+.page-header-dokumen {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(0, 80, 143, 0.65) 100%),
+                url('../images/Dokumen SOP.jpg') center/cover no-repeat;
+}
+
+.page-header-borang {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(0, 80, 143, 0.65) 100%),
+                url('../images/e-borang.jpg') center/cover no-repeat;
+}
+
+.page-header-berita {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(0, 80, 143, 0.65) 100%),
+                url('../images/banner.jpg') center/cover no-repeat;
+}
+
+.page-header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.3rem;
+}
+
+.page-header p {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.7);
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background: white;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.78rem;
+}
+
+.breadcrumb .container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-light);
+}
+
+.breadcrumb a {
+    color: var(--blue);
+    font-weight: 500;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb span {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* Page content area */
+.page-content {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+/* ============================================
+   DOCUMENT LIST (Reusable for Dokumen Page)
+   ============================================ */
+.doc-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.doc-filter-btn {
+    padding: 0.45rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: white;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.doc-filter-btn:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.doc-filter-btn.active {
+    background: var(--navy-mid);
+    border-color: var(--navy-mid);
+    color: white;
+}
+
+.doc-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.doc-search-input {
+    flex: 1;
+    padding: 0.65rem 1rem 0.65rem 2.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-family: inherit;
+    outline: none;
+    background: white;
+    transition: border-color var(--transition);
+    position: relative;
+}
+
+.doc-search-input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px rgba(0,80,143,0.08);
+}
+
+.doc-count {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+/* Document table/list */
+.doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.doc-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: all var(--transition);
+    cursor: pointer;
+}
+
+.doc-item:hover {
+    border-color: var(--blue);
+    box-shadow: var(--shadow-sm);
+    background: #f8faff;
+}
+
+.doc-item-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.doc-item-icon.pdf { background: #fce4e4; color: #c62828; }
+.doc-item-icon.docx, .doc-item-icon.doc { background: #e3f0ff; color: #1565c0; }
+.doc-item-icon.xlsx { background: #e8f5e9; color: #2e7d32; }
+.doc-item-icon.pptx { background: #fff3e0; color: #e65100; }
+
+.doc-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.doc-item-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.doc-item-meta {
+    font-size: 0.72rem;
+    color: var(--text-light);
+    margin-top: 0.15rem;
+}
+
+.doc-item-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.doc-item-actions button {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: white;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.doc-item-actions button:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.doc-item-actions button.primary {
+    background: var(--navy-mid);
+    border-color: var(--navy-mid);
+    color: white;
+}
+
+.doc-item-actions button.primary:hover {
+    background: var(--blue);
+}
+
+/* ============================================
+   BORANG HR CATEGORIES
+   ============================================ */
+.borang-category {
+    margin-bottom: 2rem;
+}
+
+.borang-category-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--navy-mid);
+    color: white;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.borang-category-header svg {
+    width: 18px;
+    height: 18px;
+}
+
+.borang-list {
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    overflow: hidden;
+}
+
+.borang-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: white;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all var(--transition);
+}
+
+.borang-item:last-child {
+    border-bottom: none;
+}
+
+.borang-item:hover {
+    background: #f8faff;
+}
+
+.borang-item-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.borang-item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* ============================================
+   LOGIN PAGE (Kekal style sedia ada)
+   ============================================ */
+.login-bg-white {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-bg-white::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    background: url('../images/bg login.png') center/cover no-repeat;
+    filter: blur(6px);
+    z-index: 0;
+}
+
+.login-bg-white::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.4);
+    z-index: 1;
+}
+
+.login-decor-circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.15;
+    z-index: 2;
+}
+
+.login-decor-1 {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,40,85,0.04) 0%, transparent 70%);
+    top: -15%; right: -10%;
+}
+
+.login-decor-2 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(0,80,143,0.03) 0%, transparent 70%);
+    bottom: -15%; left: -10%;
+}
+
+.login-decor-3 { display: none; }
+
+.glass-card-login-white {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-lg);
+    padding: 3rem 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 10;
+    box-shadow: var(--shadow-lg);
+    animation: cardSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cardSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.login-logo-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+
+.login-logo-img img {
+    width: 180px;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Login input fields */
+.input-group-white {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
+
+.input-icon-white {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: #9ca3af;
+    z-index: 2;
+}
+
+.input-field-white {
+    width: 100%;
+    padding: 0.7rem 0.85rem 0.7rem 2.75rem;
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: all var(--transition);
+}
+
+.input-field-white:focus {
+    border-color: var(--blue);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(0,80,143,0.08);
+}
+
+.input-field-white::placeholder {
+    color: #9ca3af;
+}
+
+.input-hint {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.68rem;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.password-toggle-white {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    z-index: 2;
+    padding: 0;
+}
+
+.password-toggle-white:hover {
+    color: var(--text-secondary);
+}
+
+/* Login status */
+.login-status {
+    text-align: center;
+    padding: 0.6rem;
+    margin-top: 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem;
+}
+
+.login-status.error {
+    background: #fef2f2;
+    color: var(--red);
+    border: 1px solid #fecaca;
+}
+
+.login-status.success {
+    background: #f0fdf4;
+    color: var(--green);
+    border: 1px solid #bbf7d0;
+}
+
+/* Google button */
+.btn-google {
+    width: 100%;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.btn-google:hover {
+    border-color: #d1d5db;
+    background: #f9fafb;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Login button */
+.btn-login {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--navy-mid);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.btn-login:hover {
+    background: var(--blue);
+    box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   ANIMATION KEYFRAMES
+   ============================================ */
+@keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(20px, -20px); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+/* ============================================
+   RESPONSIVE — Mobile
+   ============================================ */
+@media (max-width: 1024px) {
+    .nav-menu { display: none; }
+    .mobile-nav-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0.6rem;
+        z-index: 101; /* the inline position:absolute on this button already
+                          establishes a stacking context, so z-index alone is
+                          enough to stay above the open dropdown (z-index:100)
+                          and remain tappable to close it */
+    }
+
+    .nav-menu.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border-top: 1px solid var(--border-color);
+        box-shadow: var(--shadow-lg);
+        z-index: 100;
+    }
+
+    .nav-menu.open > li > a {
+        padding: 0.85rem 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    /* On pages with a photo/overlay header, top-level nav links are forced
+       white (!important) for readability against the hero image — but the
+       mobile dropdown itself has a white background, so without this override
+       that same white text becomes invisible (white-on-white). */
+    .kkm-header-overlay .main-nav .nav-menu.open > li > a {
+        color: var(--navy-mid) !important;
+        text-shadow: none !important;
+    }
+    .kkm-header-overlay .main-nav .nav-menu.open > li > a:hover,
+    .kkm-header-overlay .main-nav .nav-menu.open > li > a.active {
+        color: var(--blue) !important;
+        background: rgba(0, 80, 143, 0.06) !important;
+        border-bottom-color: var(--gold) !important;
+    }
+
+    .nav-dropdown {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        border: none;
+        border-top: none;
+        box-shadow: none;
+        min-width: auto;
+    }
+
+    .nav-dropdown a {
+        padding-left: 2.5rem;
+    }
+
+    .hero-banner { min-height: 250px; }
+    .hero-title { font-size: 1.3rem; }
+    .hero-logo { width: 90px; height: 90px; }
+
+    .leader-section { grid-template-columns: 1fr; text-align: center; }
+    .leader-photo { width: 200px; height: 200px; }
+    .leader-quote { text-align: left; }
+
+    .info-links-grid { grid-template-columns: 1fr; }
+    .stat-strip { grid-template-columns: repeat(2, 1fr); }
+    .footer-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+    .utility-bar .container { flex-wrap: wrap; }
+    .utility-search { max-width: 100%; order: 3; width: 100%; }
+    .utility-actions { order: 2; }
+
+    /* Menu profil berlabuh pada right:0 supaya ia berkembang ke kiri dari
+       butang — betul untuk desktop, di mana butang itu berada di penjuru
+       kanan. Pada telefon .utility-actions berpindah ke kiri skrin, jadi
+       menu selebar 277px itu terkeluar ~148px ke kiri dan pilihan "Cerah"
+       hilang sepenuhnya. Labuhkan ke kiri sebaliknya supaya ia berkembang
+       ke dalam skrin. */
+    .profile-dropdown-content {
+        left: 0;
+        right: auto;
+    }
+
+    /* Shrink the "PORTAL RASMI INTRANET / HOSPITAL SERIAN..." brand block so
+       it doesn't crowd the hamburger button on narrow phone screens. */
+    .kkm-header-overlay .utility-brand { gap: 8px; }
+    .kkm-header-overlay .utility-brand img { height: 38px; }
+    .kkm-header-overlay .utility-brand-text h1 { font-size: 0.72rem; letter-spacing: 0.2px; }
+    .kkm-header-overlay .utility-brand-text span { font-size: 0.6rem; display: block; }
+
+    .hero-banner { min-height: 200px; }
+    .hero-title { font-size: 1.1rem; }
+    .hero-subtitle { font-size: 0.75rem; }
+    .hero-logo { width: 70px; height: 70px; }
+
+    .stat-strip { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .news-grid { grid-template-columns: 1fr; }
+    .quick-links-grid { gap: 1.5rem; }
+
+    .glass-card-login-white { padding: 2rem 1.5rem; margin: 1rem; }
+}
+
+/* ============================================
+   MODALS
+   ============================================ */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,20,40,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s ease;
+    padding: 1rem;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-light);
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+    background: var(--bg-light);
+}
+
+.modal-body {
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    gap: 0.5rem;
+}
+
+/* ============================================
+   DOC FILE ICON
+   ============================================ */
+.doc-file-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+/* ============================================
+   DOC TABLE ROWS
+   ============================================ */
+.doc-table tr {
+    transition: background var(--transition);
+}
+
+.doc-table tr:hover {
+    background: #f8faff;
+}
+
+/* --- Jadual dokumen/borang pada telefon ---
+   Jadual 6 lajur ini lebih kurang 620px lebar, jauh melebihi skrin telefon
+   390px, jadi pengguna terpaksa skrol ke tepi semata-mata untuk sampai ke
+   butang Muat Turun. Di bawah 640px setiap baris ditukar menjadi kad
+   bertindan. Label lajur yang hilang bersama <thead> disuntik semula
+   melalui ::before mengikut kedudukan lajur, jadi tiada maklumat hilang
+   dan tiada perubahan diperlukan pada JS yang menjana baris. */
+@media (max-width: 640px) {
+    .doc-table thead { display: none; }
+
+    .doc-table,
+    .doc-table tbody,
+    .doc-table tr,
+    .doc-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .doc-table tr {
+        border: 1px solid var(--border-color) !important;
+        border-radius: 10px;
+        margin-bottom: 0.7rem;
+        padding: 0.85rem 1rem;
+        background: var(--surface);
+    }
+
+    .doc-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.3rem 0 !important;
+        border: none !important;
+        text-align: right;
+    }
+
+    .doc-table td::before {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        flex-shrink: 0;
+        text-align: left;
+    }
+    .doc-table td:nth-child(2)::before { content: 'Kategori'; }
+    .doc-table td:nth-child(3)::before { content: 'Versi'; }
+    .doc-table td:nth-child(4)::before { content: 'Tarikh'; }
+    .doc-table td:nth-child(5)::before { content: 'Saiz'; }
+    .doc-table td:nth-child(6)::before { content: 'Tindakan'; }
+
+    /* Nama dokumen jadi tajuk kad: penuh lebar, rata kiri, bergaris bawah */
+    .doc-table td:first-child {
+        display: block;
+        text-align: left;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+
+    /* Butang tindakan dirapatkan ke kanan supaya senang dicapai ibu jari */
+    .doc-table td:last-child > div { justify-content: flex-end !important; }
+
+    /* Baris "tiada rekod" tidak perlu rupa kad */
+    .doc-table td[colspan] {
+        display: block;
+        text-align: center;
+        border-bottom: none !important;
+    }
+    .doc-table td[colspan]::before { content: none; }
+}
+
+/* ============================================
+   NEWS/BERITA STYLES
+   ============================================ */
+.filter-tab {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    background: white;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.filter-tab:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.filter-tab.active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: white;
+}
+
+.filter-tab .filter-count {
+    background: rgba(0,0,0,0.08);
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+    font-size: 0.65rem;
+}
+
+.filter-tab.active .filter-count {
+    background: rgba(255,255,255,0.2);
+}
+
+.news-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+/* ============================================
+   KKM STYLE REDESIGN (DASHBOARD)
+   ============================================ */
+
+/* --- Modern Stat Tiles (Statistik Semasa) --- */
+.stat-tiles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1.25rem;
+}
+@media (max-width: 640px) {
+    .stat-tiles-grid { grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+}
+@media (max-width: 420px) {
+    .stat-tiles-grid { grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+}
+
+.stat-tile {
+    position: relative;
+    background: linear-gradient(160deg, #ffffff 0%, color-mix(in srgb, var(--tile-accent, #3b82f6) 5%, white) 100%);
+    border-radius: 20px;
+    padding: 1.6rem 1.6rem 1.35rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 24px -10px rgba(15, 23, 42, 0.12);
+    border: 1px solid #eef1f6;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s ease;
+}
+.stat-tile::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--tile-accent, #3b82f6), color-mix(in srgb, var(--tile-accent, #3b82f6) 40%, white));
+}
+/* Soft oversized circle peeking from the corner — adds depth without clutter */
+.stat-tile::after {
+    content: '';
+    position: absolute;
+    bottom: -22px; right: -22px;
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--tile-accent, #3b82f6) 7%, transparent);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+}
+.stat-tile:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 18px -6px color-mix(in srgb, var(--tile-accent, #3b82f6) 30%, transparent), 0 26px 40px -16px rgba(15, 23, 42, 0.2);
+    border-color: color-mix(in srgb, var(--tile-accent, #3b82f6) 35%, #eef1f6);
+}
+.stat-tile:hover::after {
+    transform: scale(1.25);
+}
+.stat-tile-icon {
+    position: relative;
+    z-index: 1;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--tile-accent, #3b82f6), color-mix(in srgb, var(--tile-accent, #3b82f6) 65%, black));
+    color: #ffffff;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 10px 18px -8px color-mix(in srgb, var(--tile-accent, #3b82f6) 65%, transparent);
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.stat-tile:hover .stat-tile-icon {
+    transform: scale(1.1) rotate(-6deg);
+}
+.stat-tile-icon svg { width: 24px; height: 24px; }
+.stat-tile-label {
+    position: relative;
+    z-index: 1;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.5rem;
+}
+.stat-tile-value {
+    position: relative;
+    z-index: 1;
+    font-size: 2.75rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+}
+.stat-tile-footer {
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+    padding-top: 0.9rem;
+    border-top: 1px dashed #e5e9f0;
+    font-size: 0.74rem;
+    color: #94a3b8;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.stat-tile-footer svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+/* Keep the tiles compact on phones — smaller padding/icon/number so four
+   stats don't dominate the whole screen before real content even shows. */
+@media (max-width: 640px) {
+    .stat-tile { padding: 1rem 1rem 0.85rem; border-radius: 16px; }
+    .stat-tile::after { width: 60px; height: 60px; bottom: -12px; right: -12px; }
+    .stat-tile-icon { width: 38px; height: 38px; border-radius: 11px; margin-bottom: 0.65rem; }
+    .stat-tile-icon svg { width: 17px; height: 17px; }
+    .stat-tile-label { font-size: 0.6rem; margin-bottom: 0.3rem; }
+    .stat-tile-value { font-size: 1.6rem; margin-bottom: 0.4rem; letter-spacing: -0.02em; }
+    .stat-tile-footer { font-size: 0.64rem; padding-top: 0.55rem; gap: 0.3rem; }
+    .stat-tile-footer svg { width: 10px; height: 10px; }
+}
+
+.stat-live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #16a34a;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.stat-live-badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #22c55e;
+    animation: statPulse 1.8s infinite;
+}
+@keyframes statPulse {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+    70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.kkm-section-title {
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--navy-dark);
+    margin-bottom: 2rem;
+}
+
+.kkm-services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.kkm-service-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 16px -8px rgba(15, 23, 42, 0.12);
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    position: relative;
+}
+
+.kkm-service-card:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 4px 8px rgba(15, 23, 42, 0.06), 0 22px 38px -14px rgba(15, 23, 42, 0.22);
+    border-color: transparent;
+}
+
+.kkm-service-img {
+    height: 140px;
+    background: linear-gradient(135deg, var(--navy-mid), var(--blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    overflow: hidden;
+    position: relative;
+}
+
+.kkm-service-img::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, rgba(255,255,255,0.18), transparent 55%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.kkm-service-card:hover .kkm-service-img::after {
+    opacity: 1;
+}
+
+.kkm-service-img svg,
+.kkm-service-img img {
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.kkm-service-card:hover .kkm-service-img svg,
+.kkm-service-card:hover .kkm-service-img img {
+    transform: scale(1.08);
+}
+
+.kkm-service-img svg {
+    width: 48px;
+    height: 48px;
+    opacity: 0.9;
+}
+
+.kkm-service-title {
+    padding: 1.1rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--navy-dark);
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.kkm-service-card:hover .kkm-service-title {
+    color: var(--blue);
+}
+
+/* Announcement Layout */
+.kkm-split-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2.5rem;
+}
+
+@media (max-width: 900px) {
+    .kkm-split-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.kkm-news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.kkm-news-card {
+    display: flex;
+    background: white;
+    border: 1.5px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.05), 0 8px 20px -14px rgba(15, 23, 42, 0.2);
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.25s ease;
+}
+
+.kkm-news-card::before {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 5px;
+    background: linear-gradient(180deg, var(--gold), var(--blue));
+    transform: scaleY(0);
+    transform-origin: center;
+    transition: transform 0.25s ease;
+}
+
+.kkm-news-card:hover {
+    transform: translateX(4px) translateY(-3px);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08), 0 18px 32px -14px rgba(15, 23, 42, 0.22);
+    border-color: transparent;
+}
+
+.kkm-news-card:hover::before {
+    transform: scaleY(1);
+}
+
+/* Diagonal light sweep across the card on hover — a quick "glint" instead of
+   a flat colour change. Clipped by the card's own overflow:hidden. */
+.kkm-news-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -75%;
+    width: 45%; height: 100%;
+    background: linear-gradient(115deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.kkm-news-card:hover::after {
+    left: 130%;
+}
+
+.kkm-date-block {
+    background: linear-gradient(160deg, var(--navy-mid), var(--navy-dark));
+    color: white;
+    width: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 0.75rem;
+    text-align: center;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+}
+
+.kkm-news-card:hover .kkm-date-block {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 16%, transparent), 0 10px 22px -8px rgba(0, 51, 102, 0.4);
+}
+
+.kkm-date-block .day {
+    font-size: 1.7rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.kkm-date-block .month {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 0.25rem;
+    color: var(--gold-light);
+}
+
+/* Multi-day event (e.g. a 2-day course) — the two day numbers sit side-by-side
+   around a thin divider instead of one big digit wrapping onto two lines.
+   Same fixed block size as the single-day version (.kkm-date-block above) so
+   every card's date badge lines up identically regardless of content. */
+.kkm-date-block.is-range .day-range {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    white-space: nowrap;
+    line-height: 1;
+}
+.kkm-date-block.is-range .day-range .num {
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+.kkm-date-block.is-range .day-range .sep {
+    width: 8px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--gold-light);
+    flex-shrink: 0;
+    align-self: center;
+}
+
+.kkm-news-content {
+    padding: 1.1rem 1.35rem;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.kkm-news-tag {
+    display: inline-flex;
+    align-self: flex-start;
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    margin-bottom: 0.45rem;
+}
+
+.kkm-news-title {
+    display: inline-block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--navy-dark);
+    margin-bottom: 0.35rem;
+    line-height: 1.4;
+    background-image: linear-gradient(var(--blue), var(--blue));
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    background-size: 0% 2px;
+    transition: color 0.25s ease, background-size 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.kkm-news-card:hover .kkm-news-title {
+    color: var(--blue);
+    background-size: 100% 2px;
+}
+
+.kkm-news-desc {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.kkm-sidebar-box {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.kkm-sidebar-title {
+    background: linear-gradient(120deg, var(--navy-mid), var(--navy-dark));
+    color: white;
+    padding: 0.85rem 1.1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.kkm-sidebar-title::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201, 149, 46, 0.25);
+}
+
+.kkm-sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.kkm-sidebar-list li {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.kkm-sidebar-list li:last-child {
+    border-bottom: none;
+}
+
+.kkm-sidebar-list a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.1rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: all var(--transition);
+}
+
+.kkm-sidebar-list a::after {
+    content: '›';
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.kkm-sidebar-list a:hover {
+    color: var(--blue);
+    background: var(--bg-light);
+    padding-left: 1.4rem;
+}
+
+.kkm-sidebar-list a:hover::after {
+    color: var(--blue);
+    transform: translateX(3px);
+}
+
+/* --- Scroll reveal --- */
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-on-scroll.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Card grids cascade in one-by-one instead of the whole block popping at once */
+.reveal-stagger > * {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-stagger.revealed > * {
+    opacity: 1;
+    transform: translateY(0);
+}
+.reveal-stagger.revealed > *:nth-child(1) { transition-delay: 0.05s; }
+.reveal-stagger.revealed > *:nth-child(2) { transition-delay: 0.12s; }
+.reveal-stagger.revealed > *:nth-child(3) { transition-delay: 0.19s; }
+.reveal-stagger.revealed > *:nth-child(4) { transition-delay: 0.26s; }
+.reveal-stagger.revealed > *:nth-child(5) { transition-delay: 0.33s; }
+.reveal-stagger.revealed > *:nth-child(6) { transition-delay: 0.4s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .reveal-on-scroll, .reveal-stagger > * {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}

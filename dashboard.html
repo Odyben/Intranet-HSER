@@ -1,0 +1,1833 @@
+<?php require_once __DIR__ . '/api/ip_guard.php'; ?>
+<!DOCTYPE html>
+<html lang="ms">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/logo kkm.png" type="image/png">
+    <title>Portal Intranet — Hospital Serian</title>
+    <meta name="description" content="Sistem Intranet Hospital Serian, Sarawak.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/custom.css?v=27">
+    <style>
+        /* Hero Banner & Slideshow - images are always shown in full (contain, never
+           cropped); the empty space around them is filled with a blurred, zoomed
+           copy of the same image so it picks up the photo's own colours instead
+           of a flat brand colour. */
+        .hero-banner {
+            position: relative;
+            height: 100vh !important;
+            min-height: 650px !important;
+            background: var(--bg-light, #eef1f5) !important;
+            overflow: hidden;
+        }
+
+        /* Full-page hero makes sense on desktop, but on a phone it just pushes
+           all the real content (news, quick links) below the fold — shorten it
+           so mobile visitors reach the useful part of the page faster. */
+        @media (max-width: 640px) {
+            .hero-banner {
+                height: 52vh !important;
+                min-height: 320px !important;
+                max-height: 460px !important;
+            }
+        }
+
+        .hero-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.2s ease-out;
+            z-index: 1;
+        }
+
+        .hero-slide.active {
+            opacity: 1;
+            z-index: 2;
+        }
+
+        /* Blurred, zoomed backdrop — picks up the image's own colours to fill the frame */
+        .hero-slide-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(50px) brightness(0.8) saturate(1.3);
+            transform: scale(1.15);
+        }
+
+        /* The real image on top, always shown in full — never cropped */
+        .hero-slide-fg {
+            position: absolute;
+            inset: 0;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Loading state before first fetch completes */
+        .hero-loading {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-light, #eef1f5);
+            transition: opacity 0.4s ease;
+        }
+        .hero-loading.hidden { opacity: 0; pointer-events: none; }
+        .hero-spinner {
+            width: 42px;
+            height: 42px;
+            border: 3px solid rgba(0, 51, 102, 0.15);
+            border-top-color: var(--navy, #003366);
+            border-radius: 50%;
+            animation: heroSpin 0.85s linear infinite;
+        }
+        @keyframes heroSpin { to { transform: rotate(360deg); } }
+
+        /* Slide Navigation Buttons — minimal icon-only, KKM style */
+        .slide-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent !important;
+            border: none;
+            color: var(--navy, #003366);
+            width: 40px;
+            height: 40px;
+            border-radius: 50% !important;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.65;
+            transition: all 0.2s ease;
+        }
+
+        .slide-btn svg { width: 26px; height: 26px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18)); }
+
+        .slide-btn:hover,
+        .slide-btn:focus-visible {
+            background: rgba(0, 51, 102, 0.08) !important;
+            opacity: 1;
+        }
+
+        .slide-btn:focus-visible {
+            outline: 2px solid var(--navy, #003366);
+            outline-offset: 2px;
+        }
+
+        .slide-btn:active { transform: translateY(-50%) scale(0.9); }
+
+        .slide-btn.prev { left: 10px; }
+        .slide-btn.next { right: 10px; }
+
+        /* Pagination — plain small dots, KKM style */
+        .hero-dots {
+            position: absolute;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .hero-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: rgba(0, 51, 102, 0.28);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .hero-dot:hover { background: rgba(0, 51, 102, 0.55); }
+
+        .hero-dot.active { background: var(--navy, #003366); }
+
+        /* ===== Perkhidmatan Utama — seamless infinite card loop ===== */
+        .perkhidmatan-gallery {
+            position: relative;
+            width: 100%;
+            height: 20rem;
+            overflow: hidden;
+        }
+        .perkhidmatan-cards {
+            position: absolute;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: 18rem;
+            height: 16rem;
+            top: 0.4rem;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .perkhidmatan-cards li {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 18rem;
+            height: 16rem;
+            list-style: none;
+        }
+        .perkhidmatan-cards li .kkm-service-card {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            transform-origin: center center;
+        }
+        /* GSAP already lifts/scales the active slide — the inner card's own
+           hover-lift would fight that (and only trigger on whichever peek
+           card the cursor happens to sit over), making the row look
+           lopsided. Disable it here; the carousel's own motion is enough. */
+        .perkhidmatan-cards li .kkm-service-card:hover {
+            transform: none;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 16px -8px rgba(15, 23, 42, 0.12);
+            border-color: var(--border-color);
+        }
+        .perkhidmatan-cards li .kkm-service-img { flex: 1 1 auto; height: auto; min-height: 0; }
+        .perkhidmatan-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.4rem;
+        }
+        .perkhidmatan-nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color, #e2e8f0);
+            background: #fff;
+            color: var(--navy-dark, #0a2647);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+            transition: all 0.2s ease;
+        }
+        .perkhidmatan-nav-btn svg { width: 18px; height: 18px; }
+        .perkhidmatan-nav-btn:hover {
+            background: linear-gradient(135deg, var(--navy-mid, #144272), var(--blue, #205295));
+            color: #fff;
+            border-color: transparent;
+            transform: scale(1.08);
+        }
+        .perkhidmatan-nav-btn:active { transform: scale(0.96); }
+        .perkhidmatan-drag-proxy { visibility: hidden; position: absolute; }
+
+        @media (max-width: 640px) {
+            .perkhidmatan-gallery { height: 15rem; }
+            .perkhidmatan-cards, .perkhidmatan-cards li { width: 13rem; height: 11.5rem; }
+        }
+
+        /* ===== Galeri Aktiviti — 3D coverflow carousel ===== */
+        .mzaCarousel {
+            --mzaC-fg: #e7ecf2;
+            --mzaC-accent: #e6c98a;
+            --mzaC-accent2: #c9a45c;
+            --mzaC-glass: rgba(255, 255, 255, 0.06);
+            --mzaC-glow: rgba(201, 164, 92, 0.55);
+            --mzaC-slideW: min(680px, 86%);
+            --mzaC-peek: 0.15;
+            --mzaPagH: 56px;
+            --mzaCardH: clamp(300px, 46vw, 460px);
+            position: relative;
+            height: clamp(360px, 48vw, 520px);
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 6px;
+            overflow: hidden;
+            border-radius: 22px;
+            contain: layout paint;
+            color: var(--mzaC-fg);
+        }
+        .mzaCarousel-viewport {
+            position: relative;
+            outline: none;
+            overflow: hidden;
+            height: 100%;
+            touch-action: pan-y;
+        }
+        .mzaCarousel-track {
+            position: relative;
+            height: calc(100% - var(--mzaPagH) - 12px);
+            transform-style: preserve-3d;
+            perspective: 1200px;
+            overflow: hidden;
+        }
+        .mzaCarousel-slide {
+            position: absolute;
+            top: calc(50% + 5px);
+            left: 50%;
+            /* left:50% hanya meletakkan TEPI KIRI kad di tengah bekas, jadi kad
+               sentiasa tersasar ke kanan sebanyak separuh lebarnya. Tarik balik
+               separuh lebar supaya kad aktif betul-betul di tengah. */
+            margin-left: calc(var(--mzaC-slideW) / -2);
+            width: var(--mzaC-slideW);
+            height: min(var(--mzaCardH), calc(100% - 20px));
+            transform-style: preserve-3d;
+            display: grid;
+            place-items: center;
+            border-radius: 22px;
+            overflow: hidden;
+            will-change: transform, filter;
+        }
+        .mzaCard {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            overflow: hidden;
+            background: var(--mzaC-glass);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+            backdrop-filter: saturate(120%) blur(4px);
+            transform: translateZ(0);
+            cursor: grab;
+        }
+        .mzaCard::before {
+            content: "";
+            position: absolute;
+            inset: -2%;
+            background-image: var(--mzaCard-bg);
+            background-size: cover;
+            background-position: center;
+            filter: contrast(1.02) saturate(1.08) brightness(0.9);
+            transform: translateZ(-60px) scale(1.18) translate3d(var(--mzaParBgX, 0px), var(--mzaParBgY, 0px), 0);
+            transition: transform 800ms cubic-bezier(0.2, 0.7, 0, 1), filter 800ms cubic-bezier(0.2, 0.7, 0, 1);
+        }
+        .mzaCard::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.5) 45%, rgba(0, 0, 0, 0.3) 100%);
+        }
+        .mzaCard-head { position: absolute; inset: 18px auto auto 18px; z-index: 2; max-width: 60%; }
+        .mzaCard-title {
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            font-size: clamp(18px, 2.4vw, 28px);
+            text-shadow: 2px 2px 15px rgba(0, 0, 0, 0.6);
+            line-height: 115%;
+        }
+        .mzaCard-kicker {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin: 0.45rem 0 0;
+            color: var(--mzaC-accent);
+            font-size: clamp(11px, 1.5vw, 13px);
+            font-weight: 700;
+            text-shadow: 1px 1px 10px rgba(0, 0, 0, 0.6);
+        }
+        .mzaCard-text {
+            display: -webkit-box;
+            line-clamp: 3;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            position: absolute;
+            inset: auto 18px 70px 18px;
+            z-index: 2;
+            max-width: 58ch;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 0.85rem 1rem;
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #e5e9ef;
+        }
+        .mzaCard-actions { position: absolute; inset: auto auto 16px 16px; z-index: 2; }
+        .mzaBtn {
+            appearance: none;
+            border: 1px solid var(--mzaC-accent);
+            border-radius: 12px;
+            padding: 0.55rem 1.1rem;
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: #241b06;
+            background-image: linear-gradient(180deg, #e6c98a, #dcbb78, #c9a45c);
+            box-shadow: 0 3px 15px var(--mzaC-glow);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .mzaBtn:active { transform: translateY(1px); box-shadow: 0 3px 10px rgba(201, 164, 92, 0.25); }
+
+        .mzaCarousel-controls { position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+        .mzaCarousel-prev, .mzaCarousel-next {
+            pointer-events: auto;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(6px);
+            color: var(--mzaC-fg);
+            font-size: 20px;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .mzaCarousel-prev { margin-left: 4px; }
+        .mzaCarousel-next { margin-right: 4px; }
+        .mzaCarousel-prev:hover, .mzaCarousel-next:hover { background: rgba(255, 255, 255, 0.18); }
+        .mzaCarousel-prev:active, .mzaCarousel-next:active { transform: scale(0.94); }
+
+        .mzaCarousel-pagination {
+            position: absolute;
+            left: 0; right: 0; bottom: 14px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+        }
+        .mzaCarousel-dot {
+            width: 9px; height: 9px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 0;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .mzaCarousel-dot[aria-selected="true"] {
+            background: linear-gradient(180deg, var(--mzaC-accent), var(--mzaC-accent2));
+            transform: scale(1.4);
+        }
+
+        .mzaCarousel-progress {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+        .mzaCarousel-progressBar {
+            display: block;
+            height: 100%;
+            width: 100%;
+            transform-origin: left;
+            transform: scaleX(0);
+            will-change: transform;
+            background: linear-gradient(90deg, var(--mzaC-accent2), var(--mzaC-accent));
+        }
+
+        .mzaCarousel-slide[data-state="active"] .mzaCard::before { filter: contrast(1.06) saturate(1.12) brightness(1.02); }
+        .mzaCarousel-slide[data-state="active"] .mzaCard { box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05) inset; }
+
+        .mzaPar-1, .mzaPar-2, .mzaPar-3 { will-change: transform; transition: transform 500ms cubic-bezier(0.2, 0.7, 0, 1); }
+        .mzaPar-1 { transform: translate3d(calc(var(--mzaParX, 0px) * 0.35), calc(var(--mzaParY, 0px) * 0.35), 0); }
+        .mzaPar-2 { transform: translate3d(calc(var(--mzaParX, 0px) * 0.25), calc(var(--mzaParY, 0px) * 0.25), 0); }
+        .mzaPar-3 { transform: translate3d(calc(var(--mzaParX, 0px) * 0.18), calc(var(--mzaParY, 0px) * 0.18), 0); }
+
+        /* Lightbox */
+        .galeri-lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(8, 12, 22, 0.92);
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            backdrop-filter: blur(4px);
+        }
+        .galeri-lightbox.active { display: flex; }
+        .galeri-lightbox-content {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            max-width: 720px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            animation: galeriLightboxIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes galeriLightboxIn {
+            from { opacity: 0; transform: scale(0.95) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .galeri-lightbox-content img {
+            width: 100%;
+            max-height: 52vh;
+            object-fit: contain;
+            background: #0a1420;
+            flex-shrink: 0;
+        }
+        .galeri-lightbox-info { padding: 1.25rem 1.5rem 1.5rem; overflow-y: auto; }
+        .galeri-lightbox-info h3 { font-size: 1.15rem; font-weight: 800; color: var(--navy-dark, #0a2647); margin-bottom: 0.4rem; }
+        .galeri-lightbox-date-row { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--teal, #0C7B93); font-weight: 600; margin-bottom: 0.6rem; }
+        .galeri-lightbox-desc { font-size: 0.88rem; line-height: 1.6; color: #475569; }
+        .galeri-lightbox-close {
+            position: absolute;
+            top: 0.75rem; right: 0.75rem;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            transition: background 0.2s ease;
+        }
+        .galeri-lightbox-close:hover { background: rgba(0, 0, 0, 0.75); }
+
+        @media (max-width: 640px) {
+            .mzaCarousel { height: clamp(300px, 78vw, 400px); padding: 0 2px; }
+            /* Guna peratus bekas, bukan vw. 92vw (359px) lebih lebar daripada
+               bekas sebenar (336px) selepas ditolak padding, jadi kad terkeluar
+               dan terpotong pada telefon. */
+            .mzaCarousel { --mzaC-slideW: 86%; --mzaCardH: clamp(260px, 68vw, 380px); }
+            .mzaCard-head { inset: 14px auto auto 14px; max-width: 55%; }
+            .mzaCard-text { inset: auto 14px 56px 14px; -webkit-line-clamp: 2; line-clamp: 2; font-size: 0.78rem; padding: 0.65rem 0.8rem; }
+            .mzaCard-actions { inset: auto auto 12px 12px; }
+            .mzaBtn { padding: 0.45rem 0.9rem; font-size: 0.76rem; }
+            .mzaCarousel-prev, .mzaCarousel-next { width: 34px; height: 34px; font-size: 17px; }
+            .galeri-lightbox-info { padding: 1rem 1.1rem 1.2rem; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- KKM OVERLAY HEADER -->
+    <header class="kkm-header-overlay">
+        <!-- UTILITY BAR (Gaya KKM - Top Bar) -->
+        <div class="utility-bar">
+            <div class="container">
+                <div class="utility-brand">
+                    <img src="images/logo kkm.png" alt="Logo KKM">
+                    <div class="utility-brand-text">
+                        <h1>PORTAL RASMI INTRANET</h1>
+                        <span>HOSPITAL SERIAN, KEMENTERIAN KESIHATAN MALAYSIA</span>
+                    </div>
+                </div>
+                                <div class="utility-actions">
+                    <div class="profile-dropdown">
+                        <div class="profile-dropdown-btn" onclick="toggleProfileDropdown(event)">
+                            <div class="utility-user-avatar" id="header-avatar">?</div>
+                            <div class="utility-user-name" id="header-name">Memuatkan...</div>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 2px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        
+                        <div class="profile-dropdown-content" id="profileDropdown">
+                            <div class="dropdown-item" id="admin-panel-link" style="display: none;" onclick="window.location.href='admin.html'">
+                                ⚙️ Pentadbir
+                            </div>
+                            <div class="dropdown-item theme-picker-item" onclick="event.stopPropagation();">
+                                <span class="theme-picker-label">Tema Paparan</span>
+                                <div class="theme-picker">
+                                    <button type="button" class="theme-option" data-theme="light" onclick="setThemePreference('light')" title="Mod Cerah">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                        Cerah
+                                    </button>
+                                    <button type="button" class="theme-option" data-theme="dark" onclick="setThemePreference('dark')" title="Mod Gelap">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                        Gelap
+                                    </button>
+                                    <button type="button" class="theme-option" data-theme="system" onclick="setThemePreference('system')" title="Ikut Sistem">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                                        Sistem
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="dropdown-item" onclick="handleLogout()" style="color: var(--red);">
+                                🔓 Log Keluar
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN NAV (Gaya KKM - Slim Bar) -->
+        <nav class="main-nav">
+            <div class="container" style="justify-content: center;">
+                <ul class="nav-menu" id="nav-menu">
+                    <li><a href="dashboard.html" class="active">Laman Utama</a></li>
+                    <li><a href="dokumen.html">Pusat Dokumen</a></li>
+                    <li><a href="borang-hr.html">Borang Rasmi</a></li>
+                    <li><a href="berita.html">Berita &amp; Pengumuman</a></li>
+                    <li><a href="direktori.html">Direktori</a></li>
+                    <li><a href="tempahan-bilik.html">Tempahan Bilik</a></li>
+                </ul>
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle" title="Menu" style="position: absolute; right: 20px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- HERO BANNER -->
+    <section class="hero-banner">
+        <div class="hero-slideshow" id="hero-slideshow"></div>
+        <div class="hero-loading" id="hero-loading"><div class="hero-spinner"></div></div>
+
+        <button class="slide-btn prev" id="slide-prev" title="Sebelumnya">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <button class="slide-btn next" id="slide-next" title="Seterusnya">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+
+        <!-- Pagination Dots -->
+        <div class="hero-dots" id="hero-dots"></div>
+    </section>
+    <div class="hero-gold-bar"></div>
+
+    <!-- PERKHIDMATAN UTAMA -->
+    <section class="section section-alt reveal-on-scroll">
+        <div class="container">
+            <h2 class="kkm-section-title">Perkhidmatan Utama</h2>
+
+            <div class="perkhidmatan-gallery reveal-stagger" id="perkhidmatanGallery">
+                <ul class="perkhidmatan-cards" id="perkhidmatanCards"></ul>
+            </div>
+            <div class="perkhidmatan-actions">
+                <button class="perkhidmatan-nav-btn" id="perkhidmatan-prev" aria-label="Perkhidmatan sebelumnya" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <button class="perkhidmatan-nav-btn" id="perkhidmatan-next" aria-label="Perkhidmatan seterusnya" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+            </div>
+            <div class="perkhidmatan-drag-proxy" id="perkhidmatanDragProxy"></div>
+        </div>
+    </section>
+
+    <!-- STATISTIK HOSPITAL -->
+    <!-- Padding tepi dikekalkan 1.5rem (bukan 0) supaya tajuk & kad statistik
+         tidak melekat pada tepi skrin telefon. -->
+    <section class="section reveal-on-scroll" style="padding: 3rem 1.5rem; background: #f8fafc;">
+        <div class="container">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 2rem; flex-wrap:wrap; gap:0.75rem;">
+                <div>
+                    <h2 class="kkm-section-title" style="margin-bottom:0.5rem; text-align:left;">Statistik Semasa</h2>
+                    <p style="color:#64748b; font-size:0.95rem;">Data operasi Hospital Serian</p>
+                </div>
+                <span class="stat-live-badge"><span class="dot"></span> Live</span>
+            </div>
+
+            <div class="stat-tiles-grid reveal-stagger">
+
+                <!-- Staf Aktif -->
+                <div class="stat-tile" style="--tile-accent:#3b82f6;">
+                    <div class="stat-tile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                    <div class="stat-tile-label">Jumlah Staf</div>
+                    <div class="stat-tile-value stat-value" id="stat-staff-count" data-count="0">0</div>
+                    <div class="stat-tile-footer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        Aktif berkhidmat
+                    </div>
+                </div>
+
+                <!-- Dokumen & SOP -->
+                <div class="stat-tile" style="--tile-accent:#22c55e;">
+                    <div class="stat-tile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </div>
+                    <div class="stat-tile-label">Dokumen & SOP</div>
+                    <div class="stat-tile-value stat-value" id="stat-doc-count" data-count="0">0</div>
+                    <div class="stat-tile-footer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                        Polisi, garis panduan & nota
+                    </div>
+                </div>
+
+                <!-- Pengumuman -->
+                <div class="stat-tile" style="--tile-accent:#f97316;">
+                    <div class="stat-tile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </div>
+                    <div class="stat-tile-label">Hebahan Baru</div>
+                    <div class="stat-tile-value stat-value" id="stat-berita-count" data-count="0">0</div>
+                    <div class="stat-tile-footer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        Terkini untuk semua staf
+                    </div>
+                </div>
+
+                <!-- Unit / Jabatan -->
+                <div class="stat-tile" style="--tile-accent:#a855f7;">
+                    <div class="stat-tile-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    </div>
+                    <div class="stat-tile-label">Unit & Bahagian</div>
+                    <div class="stat-tile-value stat-value" id="stat-unit-count" data-count="0">0</div>
+                    <div class="stat-tile-footer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        Merentasi pelbagai jabatan
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- GALERI AKTIVITI -->
+    <section class="section reveal-on-scroll" id="galeri-section" style="display:none;">
+        <div class="container">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 2rem; flex-wrap:wrap; gap:0.75rem;">
+                <div>
+                    <h2 class="kkm-section-title" style="margin-bottom:0.5rem; text-align:left;">Galeri Aktiviti</h2>
+                    <p style="color:#64748b; font-size:0.95rem;">Detik-detik aktiviti dan program Hospital Serian</p>
+                </div>
+            </div>
+
+            <div class="mzaCarousel" id="mzaGaleriCarousel" aria-roledescription="carousel" aria-label="Galeri Aktiviti">
+                <div class="mzaCarousel-viewport" tabindex="0">
+                    <div class="mzaCarousel-track" id="galeri-grid"></div>
+                </div>
+                <div class="mzaCarousel-controls" aria-label="Kawalan">
+                    <button class="mzaCarousel-prev" aria-label="Gambar sebelumnya" type="button">&lsaquo;</button>
+                    <button class="mzaCarousel-next" aria-label="Gambar seterusnya" type="button">&rsaquo;</button>
+                </div>
+                <div class="mzaCarousel-pagination" role="tablist" aria-label="Navigasi gambar"></div>
+                <div class="mzaCarousel-progress" aria-hidden="true"><span class="mzaCarousel-progressBar"></span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Galeri Lightbox -->
+    <div class="galeri-lightbox" id="galeri-lightbox" onclick="if(event.target===this) closeGaleriLightbox();">
+        <div class="galeri-lightbox-content">
+            <button class="galeri-lightbox-close" onclick="closeGaleriLightbox()" aria-label="Tutup">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <img id="galeri-lightbox-img" src="" alt="">
+            <div class="galeri-lightbox-info">
+                <h3 id="galeri-lightbox-title"></h3>
+                <div class="galeri-lightbox-date-row" id="galeri-lightbox-date-row" style="display:none;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span id="galeri-lightbox-date"></span>
+                </div>
+                <p class="galeri-lightbox-desc" id="galeri-lightbox-desc"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PENGUMUMAN / TERKINI -->
+    <section class="section reveal-on-scroll">
+        <div class="container">
+            <h2 class="kkm-section-title">Pengumuman / Terkini</h2>
+
+            <div class="kkm-split-layout">
+                <!-- Kiri: Senarai Berita -->
+                <div class="kkm-news-list reveal-stagger" id="kkm-news-list">
+                    <a href="berita.html" class="kkm-news-card">
+                        <div class="kkm-date-block">
+                            <span class="day">20</span>
+                            <span class="month">Julai</span>
+                        </div>
+                        <div class="kkm-news-content">
+                            <h3 class="kkm-news-title">Pekeliling Baharu: Garis Panduan Pengurusan Wad 2026</h3>
+                            <p class="kkm-news-desc">Semua Ketua Unit dan Penyelia Wad diminta mengambil maklum mengenai
+                                garis panduan pengurusan wad baharu yang berkuat kuasa mulai 1 Ogos 2026.</p>
+                        </div>
+                    </a>
+                    <a href="berita.html" class="kkm-news-card">
+                        <div class="kkm-date-block">
+                            <span class="day">19</span>
+                            <span class="month">Julai</span>
+                        </div>
+                        <div class="kkm-news-content">
+                            <h3 class="kkm-news-title">Mesyuarat Jawatankuasa Kualiti — Suku Ketiga 2026</h3>
+                            <p class="kkm-news-desc">Semua ahli jawatankuasa kualiti diminta hadir. Tempat: Bilik
+                                Mesyuarat Utama, 9:00 pagi.</p>
+                        </div>
+                    </a>
+                    <a href="berita.html" class="kkm-news-card">
+                        <div class="kkm-date-block">
+                            <span class="day">15</span>
+                            <span class="month">Julai</span>
+                        </div>
+                        <div class="kkm-news-content">
+                            <h3 class="kkm-news-title">SOP Kawalan Jangkitan — Versi 3.2 (Kemaskini)</h3>
+                            <p class="kkm-news-desc">SOP dikemas kini merangkumi prosedur baharu. Versi lama tidak lagi
+                                terpakai mulai 20 Julai 2026.</p>
+                        </div>
+                    </a>
+                    <a href="berita.html" class="kkm-news-card">
+                        <div class="kkm-date-block">
+                            <span class="day">14</span>
+                            <span class="month">Julai</span>
+                        </div>
+                        <div class="kkm-news-content">
+                            <h3 class="kkm-news-title">Latihan CPR & BLS untuk Semua Staf — Pendaftaran Dibuka</h3>
+                            <p class="kkm-news-desc">Latihan 5-6 Ogos 2026. Staf klinikal WAJIB hadir. Pendaftaran
+                                sehingga 30 Julai melalui unit HR.</p>
+                        </div>
+                    </a>
+
+                    <div style="text-align:center; margin-top:1rem;">
+                        <a href="berita.html"
+                            style="font-size:0.85rem; font-weight:700; color:var(--blue); text-decoration:none;">LIHAT
+                            SEMUA PENGUMUMAN &rsaquo;</a>
+                    </div>
+                </div>
+
+                <!-- Kanan: Sidebar Maklumat -->
+                <div class="kkm-sidebar">
+                    <div class="kkm-sidebar-box">
+                        <div class="kkm-sidebar-title">Pautan Utama</div>
+                        <ul class="kkm-sidebar-list" id="pautan-utama-list"></ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="gov-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <!-- Column 1: Info & Contact -->
+                <div class="footer-col-main">
+                    <img src="images/logo kkm.png" alt="Logo KKM" class="footer-logo" style="width:120px; height:auto;">
+                    <div class="footer-address">
+                        <strong>HOSPITAL SERIAN</strong><br>
+                        Bandar Serian, 94700 Serian,<br>
+                        Sarawak.<br><br>
+                        <strong>Tel:</strong> 082-874 311<br>
+                        <strong>Faks:</strong> 082-874 311
+                    </div>
+                </div>
+
+                <!-- Column 2: Pautan Utama -->
+                <div>
+                    <h4 class="footer-heading">Pautan Utama</h4>
+                    <ul class="footer-links">
+                        <li><a href="dashboard.html">Laman Utama</a></li>
+                        <li><a href="dokumen.html">Pusat Dokumen & SOP</a></li>
+                        <li><a href="borang-hr.html">e-Borang</a></li>
+                        <li><a href="berita.html">Berita & Pengumuman</a></li>
+                        <li><a href="direktori.html">Direktori Staf</a></li>
+                        <li><a href="tempahan-bilik.html">Tempahan Bilik</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Pautan Luaran -->
+                <div>
+                    <h4 class="footer-heading">Pautan Luaran</h4>
+                    <ul class="footer-links" id="footer-luaran-list"></ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    © 2026 Hospital Serian, Kementerian Kesihatan Malaysia. Hak Cipta Terpelihara.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/docs-data.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Draggable.min.js"></script>
+    <script>
+        // --- Mobile Nav Toggle ---
+        document.getElementById('mobile-nav-toggle').addEventListener('click', function () {
+            document.getElementById('nav-menu').classList.toggle('open');
+        });
+
+        // --- Active Nav Highlight ---
+        var currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+        document.querySelectorAll('.nav-menu > li > a').forEach(function (link) {
+            var href = link.getAttribute('href');
+            if (href === currentPage) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+
+        // --- Animate stat numbers (skips re-animating if value hasn't changed) ---
+        function animateStats() {
+            document.querySelectorAll('.stat-value[data-count]').forEach(function (el) {
+                var target = parseInt(el.getAttribute('data-count')) || 0;
+                var current = parseInt((el.textContent || '').replace(/[^0-9]/g, '')) || 0;
+                if (current === target) return;
+                var diff = target - current;
+                var step = Math.max(1, Math.floor(Math.abs(diff) / 40));
+                var dir = diff > 0 ? 1 : -1;
+                var timer = setInterval(function () {
+                    current += step * dir;
+                    if ((dir > 0 && current >= target) || (dir < 0 && current <= target)) { current = target; clearInterval(timer); }
+                    el.textContent = current.toLocaleString();
+                }, 30);
+            });
+        }
+
+        // --- Fetch real-time data from API ---
+        // Remembers the last-rendered berita payload so the auto-refresh below
+        // only touches the DOM when something actually changed — rebuilding the
+        // news card list every 7s regardless caused a visible "blink" (lost
+        // hover state, flicker) even when nothing was new.
+        var lastBeritaSignature = null;
+
+        function loadDashboardData() {
+            fetch('api/dashboard.php')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    // Update stats
+                    var staffEl = document.getElementById('stat-staff-count');
+                    var docEl = document.getElementById('stat-doc-count');
+                    var beritaEl = document.getElementById('stat-berita-count');
+                    var unitEl = document.getElementById('stat-unit-count');
+
+                    if (staffEl) staffEl.setAttribute('data-count', data.stats.staff);
+                    if (docEl) docEl.setAttribute('data-count', data.stats.dokumen);
+                    if (beritaEl) beritaEl.setAttribute('data-count', data.stats.berita);
+                    if (unitEl) unitEl.setAttribute('data-count', data.stats.unit);
+                    animateStats();
+
+                    // Update berita list — always replace the list (including the
+                    // static placeholder cards baked into the HTML), even when
+                    // there's genuinely nothing to show, so stale/example content
+                    // never lingers after all real announcements are deleted.
+                    var newsList = document.getElementById('kkm-news-list');
+                    var beritaSignature = JSON.stringify(data.berita || []);
+                    if (newsList && beritaSignature !== lastBeritaSignature) {
+                        lastBeritaSignature = beritaSignature;
+                        if (data.berita && data.berita.length > 0) {
+                            var html = '';
+                            var bulan = ['','Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+
+                            // Same idea as the admin table: a multi-day booking (e.g. a
+                            // 2-day course) auto-creates one announcement per day with
+                            // identical title/tag/excerpt — merge back-to-back days into
+                            // a single card showing a date range instead of duplicates.
+                            var used = new Array(data.berita.length).fill(false);
+                            var newsGroups = [];
+                            for (var ni = 0; ni < data.berita.length; ni++) {
+                                if (used[ni]) continue;
+                                var nb = data.berita[ni];
+                                used[ni] = true;
+                                if (!nb.tarikh_acara) { newsGroups.push([nb]); continue; }
+                                var nCandidates = [nb];
+                                for (var nj = ni + 1; nj < data.berita.length; nj++) {
+                                    if (used[nj]) continue;
+                                    var nc = data.berita[nj];
+                                    if (nc.tarikh_acara && nc.title === nb.title && nc.tag === nb.tag && nc.excerpt === nb.excerpt) {
+                                        nCandidates.push(nc);
+                                        used[nj] = true;
+                                    }
+                                }
+                                nCandidates.sort(function(a, b) { return a.tarikh_acara.localeCompare(b.tarikh_acara); });
+                                var nChain = [nCandidates[0]];
+                                for (var nk = 1; nk < nCandidates.length; nk++) {
+                                    var pd = new Date(nChain[nChain.length - 1].tarikh_acara);
+                                    var cd = new Date(nCandidates[nk].tarikh_acara);
+                                    if (Math.round((cd - pd) / 86400000) === 1) {
+                                        nChain.push(nCandidates[nk]);
+                                    } else {
+                                        newsGroups.push(nChain);
+                                        nChain = [nCandidates[nk]];
+                                    }
+                                }
+                                newsGroups.push(nChain);
+                            }
+
+                            newsGroups.slice(0, 6).forEach(function(ng) {
+                                var b = ng[0];
+                                var nLast = ng[ng.length - 1];
+                                var d = b.tarikh_acara ? new Date(b.tarikh_acara + 'T00:00:00') : new Date(b.created_at);
+                                var day = d.getDate();
+                                var mon = bulan[d.getMonth() + 1];
+                                var isRange = ng.length > 1;
+                                var dayHtml;
+                                if (isRange) {
+                                    var dLast = new Date(nLast.tarikh_acara + 'T00:00:00');
+                                    dayHtml = '<div class="day-range"><span class="num">' + day + '</span><span class="sep"></span><span class="num">' + dLast.getDate() + '</span></div>';
+                                } else {
+                                    dayHtml = '<span class="day">' + day + '</span>';
+                                }
+                                var tagHtml = b.tag ? '<span class="kkm-news-tag" style="background:' + b.tag_color + '18; color:' + b.tag_color + ';">' + b.tag + '</span>' : '';
+                                var excerptHtml = b.excerpt ? '<p class="kkm-news-desc">' + b.excerpt + '</p>' : '';
+                                var penyelarasHtml = b.penyelaras ? '<p style="font-size:0.78rem; color:var(--text-secondary); margin-top:0.2rem; display:flex; align-items:center; gap:0.3rem;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>' + b.penyelaras + '</p>' : '';
+                                html += '<a href="berita.html" class="kkm-news-card">' +
+                                    '<div class="kkm-date-block' + (isRange ? ' is-range' : '') + '">' +
+                                        dayHtml +
+                                        '<span class="month">' + mon + '</span>' +
+                                    '</div>' +
+                                    '<div class="kkm-news-content">' +
+                                        tagHtml +
+                                        '<h3 class="kkm-news-title">' + b.title + '</h3>' +
+                                        excerptHtml +
+                                        penyelarasHtml +
+                                    '</div>' +
+                                '</a>';
+                            });
+                            html += '<div style="text-align:center; margin-top:1rem;">' +
+                                '<a href="berita.html" style="font-size:0.85rem; font-weight:700; color:var(--blue); text-decoration:none;">LIHAT SEMUA PENGUMUMAN &rsaquo;</a>' +
+                            '</div>';
+                            newsList.innerHTML = html;
+                        } else {
+                            newsList.innerHTML = '<div style="text-align:center; padding:3rem 1rem; color:var(--text-secondary);">' +
+                                '<p style="font-size:0.9rem;">Tiada pengumuman buat masa ini.</p>' +
+                            '</div>';
+                        }
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Dashboard API error:', err);
+                });
+        }
+
+        loadDashboardData();
+
+        // --- Background auto-refresh (no manual reload needed) ---
+        setInterval(function() {
+            if (document.visibilityState === 'visible') loadDashboardData();
+        }, 7000);
+
+        // --- Galeri Aktiviti (loaded once — content changes infrequently, not part of the 7s poll) ---
+        var galeriPhotos = [];
+
+        function escapeHtml(str) {
+            var d = document.createElement('div');
+            d.textContent = str == null ? '' : str;
+            return d.innerHTML;
+        }
+
+        // 3D coverflow carousel engine for Galeri Aktiviti (drag/swipe, autoplay,
+        // parallax, keyboard + dot navigation). Instantiated fresh each time
+        // loadGaleriAktiviti() rebuilds the slide track from live photo data.
+        class MzaCarousel {
+            constructor(root, opts = {}) {
+                this.root = root;
+                this.viewport = root.querySelector(".mzaCarousel-viewport");
+                this.track = root.querySelector(".mzaCarousel-track");
+                this.slides = Array.from(root.querySelectorAll(".mzaCarousel-slide"));
+                this.prevBtn = root.querySelector(".mzaCarousel-prev");
+                this.nextBtn = root.querySelector(".mzaCarousel-next");
+                this.pagination = root.querySelector(".mzaCarousel-pagination");
+                this.progressBar = root.querySelector(".mzaCarousel-progressBar");
+                this.isFF = typeof InstallTrigger !== "undefined";
+                this.n = this.slides.length;
+                this._listeners = [];
+                this.state = {
+                    index: 0, pos: 0, width: 0, height: 0, gap: 28,
+                    dragging: false, pointerId: null, x0: 0, v: 0, t0: 0,
+                    animating: false, hovering: false, startTime: 0, pausedAt: 0, rafId: 0
+                };
+                // activeLeftBias sengaja ditetapkan 0: dalam reka bentuk asal
+                // (carousel selebar skrin penuh) ia menolak kad aktif ke kiri
+                // untuk memberi ruang, tetapi di sini carousel duduk dalam
+                // bekas berpusat, jadi sisihan itu hanya membuat kad aktif
+                // tersasar dari tengah.
+                this.opts = Object.assign({
+                    gap: 28, peek: 0.15, rotateY: 34, zDepth: 150, scaleDrop: 0.09,
+                    blurMax: 2.0, activeLeftBias: 0, interval: 4500, transitionMs: 900,
+                    keyboard: true,
+                    breakpoints: [
+                        { mq: "(max-width: 1200px)", gap: 24, peek: 0.12, rotateY: 28, zDepth: 120, scaleDrop: 0.08, activeLeftBias: 0 },
+                        { mq: "(max-width: 1000px)", gap: 18, peek: 0.09, rotateY: 22, zDepth: 90, scaleDrop: 0.07, activeLeftBias: 0 },
+                        { mq: "(max-width: 768px)", gap: 14, peek: 0.06, rotateY: 16, zDepth: 70, scaleDrop: 0.06, activeLeftBias: 0 },
+                        { mq: "(max-width: 560px)", gap: 12, peek: 0.05, rotateY: 12, zDepth: 60, scaleDrop: 0.05, activeLeftBias: 0 }
+                    ]
+                }, opts);
+                if (this.isFF) { this.opts.rotateY = 10; this.opts.zDepth = 0; this.opts.blurMax = 0; }
+                if (this.n > 0) this._init();
+            }
+            _on(el, ev, fn, opts) { el.addEventListener(ev, fn, opts); this._listeners.push([el, ev, fn]); }
+            _init() {
+                this._setupDots();
+                this._bind();
+                this._preloadImages();
+                this._measure();
+                this.goTo(0, false);
+                this._startCycle();
+                this._loop();
+            }
+            _preloadImages() {
+                this.slides.forEach((sl) => {
+                    const card = sl.querySelector(".mzaCard");
+                    const bg = getComputedStyle(card).getPropertyValue("--mzaCard-bg");
+                    const m = /url\((?:'|")?([^'")]+)(?:'|")?\)/.exec(bg);
+                    if (m && m[1]) { const img = new Image(); img.src = m[1]; }
+                });
+            }
+            _setupDots() {
+                this.pagination.innerHTML = "";
+                this.dots = this.slides.map((_, i) => {
+                    const b = document.createElement("button");
+                    b.type = "button";
+                    b.className = "mzaCarousel-dot";
+                    b.setAttribute("role", "tab");
+                    b.setAttribute("aria-label", `Ke gambar ${i + 1}`);
+                    this._on(b, "click", () => { this.goTo(i); });
+                    this.pagination.appendChild(b);
+                    return b;
+                });
+                this.root.querySelector('.mzaCarousel-controls').style.display = this.n > 1 ? '' : 'none';
+                this.pagination.style.display = this.n > 1 ? '' : 'none';
+            }
+            _bind() {
+                this._on(this.prevBtn, "click", () => { this.prev(); });
+                this._on(this.nextBtn, "click", () => { this.next(); });
+                if (this.opts.keyboard) {
+                    this._on(this.root, "keydown", (e) => {
+                        if (e.key === "ArrowLeft") this.prev();
+                        if (e.key === "ArrowRight") this.next();
+                    });
+                }
+                const pe = this.viewport;
+                this._on(pe, "pointerdown", (e) => this._onDragStart(e));
+                this._on(pe, "pointermove", (e) => this._onDragMove(e));
+                this._on(pe, "pointerup", (e) => this._onDragEnd(e));
+                this._on(pe, "pointercancel", (e) => this._onDragEnd(e));
+                this._on(this.root, "mouseenter", () => {
+                    this.state.hovering = true;
+                    this.state.pausedAt = performance.now();
+                });
+                this._on(this.root, "mouseleave", () => {
+                    if (this.state.pausedAt) {
+                        this.state.startTime += performance.now() - this.state.pausedAt;
+                        this.state.pausedAt = 0;
+                    }
+                    this.state.hovering = false;
+                });
+                this.ro = new ResizeObserver(() => this._measure());
+                this.ro.observe(this.viewport);
+                this._mqCleanup = [];
+                this.opts.breakpoints.forEach((bp) => {
+                    const m = window.matchMedia(bp.mq);
+                    const apply = () => {
+                        Object.keys(bp).forEach((k) => { if (k !== "mq") this.opts[k] = bp[k]; });
+                        this._measure();
+                        this._render();
+                    };
+                    if (m.addEventListener) m.addEventListener("change", apply);
+                    else m.addListener(apply);
+                    this._mqCleanup.push([m, apply]);
+                    if (m.matches) apply();
+                });
+                this._on(this.viewport, "pointermove", (e) => this._onTilt(e));
+            }
+            _measure() {
+                const viewRect = this.viewport.getBoundingClientRect();
+                const rootRect = this.root.getBoundingClientRect();
+                const pagRect = this.pagination.getBoundingClientRect();
+                const bottomGap = Math.max(12, Math.round(rootRect.bottom - pagRect.bottom));
+                const pagSpace = (pagRect.height || 20) + bottomGap;
+                const availH = viewRect.height - pagSpace;
+                const cardH = Math.max(240, Math.min(560, Math.round(availH)));
+                this.state.width = viewRect.width;
+                this.state.height = viewRect.height;
+                this.state.gap = this.opts.gap;
+                // Ambil lebar kad yang SEBENARNYA dirender oleh CSS
+                // (--mzaC-slideW berubah ikut breakpoint), bukan mengira semula
+                // daripada 'peek'. Kiraan lama tidak sepadan dengan CSS, jadi
+                // jarak antara kad tersasar setiap kali breakpoint bertukar.
+                // offsetWidth digunakan kerana ia mengabaikan kesan scale().
+                this.slideW = (this.slides[0] && this.slides[0].offsetWidth)
+                    || Math.min(880, this.state.width * (1 - this.opts.peek * 2));
+                this.root.style.setProperty("--mzaPagH", `${pagSpace}px`);
+                this.root.style.setProperty("--mzaCardH", `${cardH}px`);
+            }
+            _onTilt(e) {
+                const r = this.viewport.getBoundingClientRect();
+                const mx = (e.clientX - r.left) / r.width - 0.5;
+                const my = (e.clientY - r.top) / r.height - 0.5;
+                this.root.style.setProperty("--mzaTiltX", (my * -6).toFixed(3));
+                this.root.style.setProperty("--mzaTiltY", (mx * 6).toFixed(3));
+            }
+            _onDragStart(e) {
+                if (e.pointerType === "mouse" && e.button !== 0) return;
+                if (this.n <= 1) return;
+                // Let clicks on real controls (the "Lihat penuh" button) through —
+                // preventDefault() below would otherwise swallow the click event
+                // that follows this pointerdown, since the button sits inside the
+                // draggable slide area.
+                if (e.target.closest && e.target.closest('.mzaBtn, button, a')) return;
+                e.preventDefault();
+                this.state.dragging = true;
+                this.state.pointerId = e.pointerId;
+                this.viewport.setPointerCapture(e.pointerId);
+                this.state.x0 = e.clientX;
+                this.state.t0 = performance.now();
+                this.state.v = 0;
+                this.state.pausedAt = performance.now();
+            }
+            _onDragMove(e) {
+                if (!this.state.dragging || e.pointerId !== this.state.pointerId) return;
+                const dx = e.clientX - this.state.x0;
+                const dt = Math.max(16, performance.now() - this.state.t0);
+                this.state.v = dx / dt;
+                const slideSpan = this.slideW + this.state.gap;
+                this.state.pos = this._mod(this.state.index - dx / slideSpan, this.n);
+                this._render();
+            }
+            _onDragEnd(e) {
+                if (!this.state.dragging || (e && e.pointerId !== this.state.pointerId)) return;
+                this.state.dragging = false;
+                try { if (this.state.pointerId != null) this.viewport.releasePointerCapture(this.state.pointerId); } catch (err) {}
+                this.state.pointerId = null;
+                if (this.state.pausedAt) {
+                    this.state.startTime += performance.now() - this.state.pausedAt;
+                    this.state.pausedAt = 0;
+                }
+                const v = this.state.v;
+                const threshold = 0.18;
+                let target = Math.round(this.state.pos - Math.sign(v) * (Math.abs(v) > threshold ? 0.5 : 0));
+                this.goTo(this._mod(target, this.n));
+            }
+            _startCycle() {
+                this.state.startTime = performance.now();
+                this._renderProgress(0);
+            }
+            _loop() {
+                const step = (t) => {
+                    if (this.n > 1 && !this.state.dragging && !this.state.hovering && !this.state.animating) {
+                        const elapsed = t - this.state.startTime;
+                        const p = Math.min(1, elapsed / this.opts.interval);
+                        this._renderProgress(p);
+                        if (elapsed >= this.opts.interval) this.next();
+                    }
+                    this.state.rafId = requestAnimationFrame(step);
+                };
+                this.state.rafId = requestAnimationFrame(step);
+            }
+            _renderProgress(p) { this.progressBar.style.transform = `scaleX(${p})`; }
+            prev() { this.goTo(this._mod(this.state.index - 1, this.n)); }
+            next() { this.goTo(this._mod(this.state.index + 1, this.n)); }
+            goTo(i, animate = true) {
+                const start = this.state.pos || this.state.index;
+                const end = this._nearest(start, i);
+                const dur = animate ? this.opts.transitionMs : 0;
+                const t0 = performance.now();
+                const ease = (x) => 1 - Math.pow(1 - x, 4);
+                this.state.animating = true;
+                const step = (now) => {
+                    const t = Math.min(1, (now - t0) / dur);
+                    const p = dur ? ease(t) : 1;
+                    this.state.pos = start + (end - start) * p;
+                    this._render();
+                    if (t < 1) requestAnimationFrame(step);
+                    else this._afterSnap(i);
+                };
+                requestAnimationFrame(step);
+            }
+            _afterSnap(i) {
+                this.state.index = this._mod(Math.round(this.state.pos), this.n);
+                this.state.pos = this.state.index;
+                this.state.animating = false;
+                this._render(true);
+                this._startCycle();
+            }
+            _nearest(from, target) {
+                let d = target - Math.round(from);
+                if (d > this.n / 2) d -= this.n;
+                if (d < -this.n / 2) d += this.n;
+                return Math.round(from) + d;
+            }
+            _mod(i, n) { return ((i % n) + n) % n; }
+            _render(markActive = false) {
+                const span = this.slideW + this.state.gap;
+                const tiltX = parseFloat(this.root.style.getPropertyValue("--mzaTiltX") || 0);
+                const tiltY = parseFloat(this.root.style.getPropertyValue("--mzaTiltY") || 0);
+                for (let i = 0; i < this.n; i++) {
+                    let d = i - this.state.pos;
+                    if (d > this.n / 2) d -= this.n;
+                    if (d < -this.n / 2) d += this.n;
+                    const weight = Math.max(0, 1 - Math.abs(d) * 2);
+                    const biasActive = -this.slideW * this.opts.activeLeftBias * weight;
+                    const tx = d * span + biasActive;
+                    const depth = -Math.abs(d) * this.opts.zDepth;
+                    const rot = -d * this.opts.rotateY;
+                    const scale = 1 - Math.min(Math.abs(d) * this.opts.scaleDrop, 0.42);
+                    const blur = Math.min(Math.abs(d) * this.opts.blurMax, this.opts.blurMax);
+                    const z = Math.round(1000 - Math.abs(d) * 10);
+                    const s = this.slides[i];
+                    if (this.isFF) {
+                        s.style.transform = `translate(${tx}px,-50%) scale(${scale})`;
+                        s.style.filter = "none";
+                    } else {
+                        s.style.transform = `translate3d(${tx}px,-50%,${depth}px) rotateY(${rot}deg) scale(${scale})`;
+                        s.style.filter = `blur(${blur}px)`;
+                    }
+                    s.style.zIndex = z;
+                    if (markActive) s.dataset.state = Math.round(this.state.index) === i ? "active" : "rest";
+                    const card = s.querySelector(".mzaCard");
+                    const parBase = Math.max(-1, Math.min(1, -d));
+                    const parX = parBase * 48 + tiltY * 2.0;
+                    const parY = tiltX * -1.5;
+                    const bgX = parBase * -64 + tiltY * -2.4;
+                    card.style.setProperty("--mzaParX", `${parX.toFixed(2)}px`);
+                    card.style.setProperty("--mzaParY", `${parY.toFixed(2)}px`);
+                    card.style.setProperty("--mzaParBgX", `${bgX.toFixed(2)}px`);
+                    card.style.setProperty("--mzaParBgY", `${(parY * 0.35).toFixed(2)}px`);
+                }
+                const active = this._mod(Math.round(this.state.pos), this.n);
+                this.dots.forEach((d, i) => d.setAttribute("aria-selected", i === active ? "true" : "false"));
+            }
+            destroy() {
+                if (this.state.rafId) cancelAnimationFrame(this.state.rafId);
+                if (this.ro) this.ro.disconnect();
+                if (this._mqCleanup) {
+                    this._mqCleanup.forEach(([m, apply]) => {
+                        if (m.removeEventListener) m.removeEventListener("change", apply);
+                        else m.removeListener(apply);
+                    });
+                }
+                this._listeners.forEach(([el, ev, fn]) => el.removeEventListener(ev, fn));
+            }
+        }
+
+        var mzaGaleriInstance = null;
+        var GALERI_BULAN_PENUH = ['','Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+
+        function loadGaleriAktiviti() {
+            fetch('api/galeri.php?limit=10')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var section = document.getElementById('galeri-section');
+                    var track = document.getElementById('galeri-grid');
+                    if (!section || !track) return;
+
+                    galeriPhotos = data.data || [];
+                    if (!galeriPhotos.length) {
+                        section.style.display = 'none';
+                        return;
+                    }
+
+                    var n = galeriPhotos.length;
+                    var html = '';
+                    galeriPhotos.forEach(function(p, idx) {
+                        var kicker = 'Aktiviti Hospital Serian';
+                        if (p.tarikh) {
+                            var d = new Date(p.tarikh + 'T00:00:00');
+                            kicker = d.getDate() + ' ' + GALERI_BULAN_PENUH[d.getMonth() + 1] + ' ' + d.getFullYear();
+                        }
+                        var descHtml = p.description ? '<p class="mzaCard-text mzaPar-2">' + escapeHtml(p.description) + '</p>' : '';
+                        html += '<article class="mzaCarousel-slide" role="group" aria-roledescription="slide" aria-label="' + (idx + 1) + ' of ' + n + '">' +
+                            '<div class="mzaCard" style="--mzaCard-bg:url(\'' + p.image_path + '\');">' +
+                                '<header class="mzaCard-head mzaPar-1">' +
+                                    '<h2 class="mzaCard-title">' + escapeHtml(p.title) + '</h2>' +
+                                    '<p class="mzaCard-kicker"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' + kicker + '</p>' +
+                                '</header>' +
+                                descHtml +
+                                '<footer class="mzaCard-actions mzaPar-3"><button class="mzaBtn" onclick="openGaleriLightbox(' + idx + ')">Lihat penuh</button></footer>' +
+                            '</div>' +
+                        '</article>';
+                    });
+                    track.innerHTML = html;
+                    section.style.display = '';
+
+                    if (mzaGaleriInstance) {
+                        mzaGaleriInstance.destroy();
+                        mzaGaleriInstance = null;
+                    }
+                    mzaGaleriInstance = new MzaCarousel(document.getElementById('mzaGaleriCarousel'), { transitionMs: 900, interval: 5000 });
+                })
+                .catch(function(err) {
+                    console.error('Galeri API error:', err);
+                });
+        }
+
+        function openGaleriLightbox(idx) {
+            var p = galeriPhotos[idx];
+            if (!p) return;
+            document.getElementById('galeri-lightbox-img').src = p.image_path;
+            document.getElementById('galeri-lightbox-img').alt = p.title || '';
+            document.getElementById('galeri-lightbox-title').textContent = p.title || '';
+            document.getElementById('galeri-lightbox-desc').textContent = p.description || '';
+
+            var dateRow = document.getElementById('galeri-lightbox-date-row');
+            if (p.tarikh) {
+                var bulanPenuh = ['','Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+                var d = new Date(p.tarikh + 'T00:00:00');
+                document.getElementById('galeri-lightbox-date').textContent = d.getDate() + ' ' + bulanPenuh[d.getMonth() + 1] + ' ' + d.getFullYear();
+                dateRow.style.display = 'flex';
+            } else {
+                dateRow.style.display = 'none';
+            }
+
+            document.getElementById('galeri-lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeGaleriLightbox() {
+            document.getElementById('galeri-lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeGaleriLightbox();
+        });
+
+        loadGaleriAktiviti();
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') loadDashboardData();
+        });
+
+        // --- Perkhidmatan Utama: drag/swipe coverflow carousel (GSAP) ---
+        // Purely user-driven (no autoplay). Each card's transform is computed
+        // directly from its signed distance to the current center position —
+        // not from a shared timeline — so the layout is mathematically
+        // guaranteed left/right-symmetric around whichever card is active,
+        // for any item count, at any drag position. Draggable politely
+        // ignores presses that start on the <a> links themselves (GSAP's
+        // default dragClickables:false) so the cards stay clickable.
+        function initPerkhidmatanGallery() {
+            if (typeof gsap === 'undefined' || typeof Draggable === 'undefined') return;
+            gsap.registerPlugin(Draggable);
+
+            var cards = gsap.utils.toArray('#perkhidmatanCards > li');
+            var n = cards.length;
+            if (!n) return;
+
+            var STEP_XPCT = 118, // horizontal offset per step, as % of a card's own width
+                SCALE_FALLOFF = 0.4,
+                OPACITY_FALLOFF = 0.6;
+
+            var playhead = { pos: 0 }; // continuous "which index is centered"; 0 = first card
+
+            function render() {
+                cards.forEach(function(card, i) {
+                    // Full modulo wrap (not a single ±n nudge) — needed because
+                    // playhead.pos keeps accumulating across repeated next/prev
+                    // clicks or long drags and can end up many steps away from 0.
+                    var d = (i - playhead.pos) % n;
+                    if (d > n / 2) d -= n;
+                    if (d < -n / 2) d += n;
+                    var abs = Math.abs(d);
+                    gsap.set(card, {
+                        xPercent: d * STEP_XPCT,
+                        scale: Math.max(0.3, 1 - abs * SCALE_FALLOFF),
+                        opacity: Math.max(0, 1 - abs * OPACITY_FALLOFF),
+                        zIndex: Math.round(100 - abs * 10)
+                    });
+                });
+            }
+            render();
+
+            var snapStep = gsap.utils.snap(1);
+            // Purely user-driven — no autoplay. Dragging tracks the pointer 1:1
+            // for an immediately responsive feel, then eases to the nearest
+            // card on release (with an extra step if it was a quick flick) so
+            // it always comes to rest centered instead of stopping mid-card.
+            function snapTo(target) {
+                gsap.to(playhead, {
+                    pos: target,
+                    duration: 0.5,
+                    ease: 'power3.out',
+                    onUpdate: render,
+                    onComplete: function() {
+                        // Fold pos back into [0, n) once settled so it never
+                        // keeps climbing across many next/prev clicks or drags —
+                        // render()'s own modulo makes this a no-op visually.
+                        playhead.pos = ((playhead.pos % n) + n) % n;
+                    }
+                });
+            }
+            function step(dir) { snapTo(snapStep(playhead.pos) + dir); }
+
+            var prevBtn = document.getElementById('perkhidmatan-prev');
+            var nextBtn = document.getElementById('perkhidmatan-next');
+            if (prevBtn) prevBtn.addEventListener('click', function() { step(-1); });
+            if (nextBtn) nextBtn.addEventListener('click', function() { step(1); });
+
+            Draggable.create('#perkhidmatanDragProxy', {
+                type: 'x',
+                trigger: '#perkhidmatanCards',
+                allowNativeTouchScrolling: true,
+                onPress: function() {
+                    gsap.killTweensOf(playhead);
+                    this.startPos = playhead.pos;
+                    this._stepPx = (cards[0].getBoundingClientRect().width || 288) * STEP_XPCT / 100;
+                    var ev = this.pointerEvent;
+                    this._sx = ev.clientX;
+                    this._sy = ev.clientY;
+                    this._axis = null; // undecided until the gesture moves enough to tell
+                },
+                onDrag: function() {
+                    var ev = this.pointerEvent;
+                    if (this._axis === null) {
+                        var dx = Math.abs(ev.clientX - this._sx),
+                            dy = Math.abs(ev.clientY - this._sy);
+                        if (dx < 6 && dy < 6) return; // too little movement yet to tell intent
+                        this._axis = dx > dy ? 'x' : 'y';
+                    }
+                    // A mostly-vertical gesture is a page scroll, not a swipe —
+                    // leave the carousel alone and let the page scroll normally.
+                    if (this._axis !== 'x') return;
+                    playhead.pos = this.startPos + (this.startX - this.x) / this._stepPx;
+                    render();
+                },
+                onDragEnd: function() {
+                    if (this._axis !== 'x') return; // was a scroll gesture — nothing to snap
+                    var v = this.getVelocity("x"),
+                        flickThreshold = 350, // px/sec — a fast flick jumps one extra card
+                        extra = Math.abs(v) > flickThreshold ? Math.sign(-v) : 0;
+                    snapTo(snapStep(playhead.pos) + extra);
+                }
+            });
+        }
+
+        // --- Pautan & Perkhidmatan: admin-managed cards/links, loaded once ---
+        // Fetches all three admin-managed blocks (Perkhidmatan Utama cards,
+        // Pautan Utama sidebar, Pautan Luaran footer) in one request and
+        // fills in the empty containers left in the HTML for them. The
+        // carousel can only be initialized (GSAP measures the <li> elements)
+        // once its cards actually exist in the DOM, so that call happens
+        // here after the fetch, not at page load like before.
+        function loadPautanData() {
+            fetch('api/pautan.php')
+                .then(function(r) { return r.json(); })
+                .then(function(res) {
+                    var data = res.data || {};
+                    renderPerkhidmatanCards(data.perkhidmatan || []);
+                    renderPautanLinks('pautan-utama-list', data.pautan_utama || []);
+                    renderPautanLinks('footer-luaran-list', data.pautan_luaran || []);
+                })
+                .catch(function(err) { console.error('Pautan load error:', err); });
+        }
+
+        function renderPerkhidmatanCards(items) {
+            var track = document.getElementById('perkhidmatanCards');
+            if (!track) return;
+            if (items.length) {
+                track.innerHTML = items.map(function(p) {
+                    var external = /^https?:\/\//i.test(p.url);
+                    return '<li>' +
+                        '<a href="' + escapeHtml(p.url) + '"' + (external ? ' target="_blank"' : '') + ' class="kkm-service-card">' +
+                            '<div class="kkm-service-img" style="background: transparent;">' +
+                                '<img src="' + escapeHtml(p.image_path) + '" alt="' + escapeHtml(p.title) + '" style="width:100%; height:100%; object-fit:cover;">' +
+                            '</div>' +
+                            '<div class="kkm-service-title">' + escapeHtml(p.title) + '</div>' +
+                        '</a>' +
+                    '</li>';
+                }).join('');
+            }
+            initPerkhidmatanGallery();
+        }
+
+        // Shared renderer for the two plain title+URL link lists (Pautan
+        // Utama sidebar and Pautan Luaran footer) — same markup shape, only
+        // the target container id differs.
+        function renderPautanLinks(containerId, items) {
+            var list = document.getElementById(containerId);
+            if (!list) return;
+            list.innerHTML = items.map(function(p) {
+                var external = /^https?:\/\//i.test(p.url);
+                return '<li><a href="' + escapeHtml(p.url) + '"' + (external ? ' target="_blank"' : '') + '>' + escapeHtml(p.title) + '</a></li>';
+            }).join('');
+        }
+
+        loadPautanData();
+
+        // --- Auth Check ---
+        (function () {
+            var isAuth = localStorage.getItem('user_authenticated');
+            if (isAuth !== 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            var userName = localStorage.getItem('user_name') || 'Pengguna';
+            var userPicture = localStorage.getItem('user_picture') || '';
+
+            function titleCase(str) {
+                return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+            }
+
+            var headerName = document.getElementById('header-name');
+            var headerAvatar = document.getElementById('header-avatar');
+
+            if (headerName) headerName.textContent = titleCase(userName.split(' ')[0]);
+
+            if (headerAvatar) {
+                if (userPicture) {
+                    headerAvatar.innerHTML = '<img src="' + userPicture + '" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+                } else {
+                    var initials = userName.split(' ').map(function (n) { return n[0]; }).join('').substring(0, 2).toUpperCase();
+                    headerAvatar.textContent = initials;
+                }
+            }
+
+
+            window.handleLogout = function () {
+                localStorage.removeItem('user_authenticated');
+                localStorage.removeItem('user_name');
+                localStorage.removeItem('user_email');
+                localStorage.removeItem('user_picture');
+                window.location.href = 'index.html';
+            };
+        })();
+
+        // --- Slideshow Logic: fetched from API, KKM-style banner ---
+        (function() {
+            var slideshowContainer = document.getElementById('hero-slideshow');
+            var dotsContainer = document.getElementById('hero-dots');
+            var loadingEl = document.getElementById('hero-loading');
+            var heroBanner = document.querySelector('.hero-banner');
+            var slides = [];
+            var dots = [];
+            var currentSlide = 0;
+            var timer;
+            var slideDuration = 5000;
+
+            // Fallback in case the API has no rows yet / request fails
+            var fallbackSlides = [
+                { image_path: 'images/slideshow1.png', caption: '' },
+                { image_path: 'images/slideshow2.png', caption: '' },
+                { image_path: 'images/slideshow3.jpg', caption: '' },
+                { image_path: 'images/slideshow4.png', caption: '' },
+                { image_path: 'images/slideshow5.png', caption: '' }
+            ];
+
+            function buildSlides(data) {
+                slideshowContainer.innerHTML = '';
+                dotsContainer.innerHTML = '';
+                slides = [];
+                dots = [];
+
+                data.forEach(function(item, idx) {
+                    var slide = document.createElement('div');
+                    slide.className = 'hero-slide' + (idx === 0 ? ' active' : '');
+                    if (item.caption) slide.setAttribute('title', item.caption);
+
+                    var bg = document.createElement('div');
+                    bg.className = 'hero-slide-bg';
+                    bg.style.backgroundImage = "url('" + item.image_path + "')";
+                    slide.appendChild(bg);
+
+                    var fg = document.createElement('div');
+                    fg.className = 'hero-slide-fg';
+                    fg.style.backgroundImage = "url('" + item.image_path + "')";
+                    slide.appendChild(fg);
+
+                    slideshowContainer.appendChild(slide);
+                    slides.push(slide);
+
+                    var dot = document.createElement('div');
+                    dot.className = 'hero-dot' + (idx === 0 ? ' active' : '');
+                    dot.setAttribute('title', item.caption || ('Slaid ' + (idx + 1)));
+                    dot.addEventListener('click', function() {
+                        showSlide(idx);
+                        resetTimer();
+                    });
+                    dotsContainer.appendChild(dot);
+                    dots.push(dot);
+                });
+
+                if (loadingEl) loadingEl.classList.add('hidden');
+
+                if (slides.length > 0) {
+                    startTimer();
+                }
+            }
+
+            function showSlide(index) {
+                if (slides.length === 0) return;
+                slides[currentSlide].classList.remove('active');
+                if (dots[currentSlide]) dots[currentSlide].classList.remove('active');
+
+                currentSlide = (index + slides.length) % slides.length;
+
+                slides[currentSlide].classList.add('active');
+                if (dots[currentSlide]) dots[currentSlide].classList.add('active');
+            }
+
+            function nextSlide() { showSlide(currentSlide + 1); }
+            function prevSlide() { showSlide(currentSlide - 1); }
+
+            function startTimer() {
+                clearInterval(timer);
+                timer = setInterval(nextSlide, slideDuration);
+            }
+
+            function resetTimer() { startTimer(); }
+
+            var nextBtn = document.getElementById('slide-next');
+            var prevBtn = document.getElementById('slide-prev');
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function() {
+                    nextSlide();
+                    resetTimer();
+                });
+            }
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function() {
+                    prevSlide();
+                    resetTimer();
+                });
+            }
+
+            // Pause autoplay on hover, resume on mouse leave
+            if (heroBanner) {
+                heroBanner.addEventListener('mouseenter', function() { clearInterval(timer); });
+                heroBanner.addEventListener('mouseleave', function() { startTimer(); });
+            }
+
+            // Touch swipe navigation (mobile) — swipe left for next, right for previous
+            if (heroBanner) {
+                var touchStartX = 0;
+                var touchStartY = 0;
+
+                heroBanner.addEventListener('touchstart', function(e) {
+                    touchStartX = e.changedTouches[0].screenX;
+                    touchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+
+                heroBanner.addEventListener('touchend', function(e) {
+                    var deltaX = e.changedTouches[0].screenX - touchStartX;
+                    var deltaY = e.changedTouches[0].screenY - touchStartY;
+
+                    // Require a clearly horizontal, meaningful-distance swipe so
+                    // normal vertical page scrolling never gets mistaken for one.
+                    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+                        if (deltaX < 0) { nextSlide(); } else { prevSlide(); }
+                        resetTimer();
+                    }
+                }, { passive: true });
+            }
+
+            // Keyboard navigation — Left/Right arrow keys move the slideshow
+            document.addEventListener('keydown', function(e) {
+                if (slides.length === 0) return;
+                var activeTag = document.activeElement ? document.activeElement.tagName : '';
+                if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
+
+                if (e.key === 'ArrowLeft') {
+                    prevSlide();
+                    resetTimer();
+                } else if (e.key === 'ArrowRight') {
+                    nextSlide();
+                    resetTimer();
+                }
+            });
+
+            fetch('api/slideshow.php')
+                .then(function(res) { return res.json(); })
+                .then(function(res) {
+                    var data = (res && res.data && res.data.length > 0) ? res.data : fallbackSlides;
+                    buildSlides(data);
+                })
+                .catch(function() {
+                    buildSlides(fallbackSlides);
+                });
+
+            // Navbar Scroll Effect
+            window.addEventListener('scroll', function() {
+                var header = document.querySelector('.kkm-header-overlay');
+                if (window.scrollY > 50) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+        })();
+    </script>
+
+<script>
+        // --- Profile Dropdown & Dark Mode Logic ---
+        function toggleProfileDropdown(e) {
+            e.stopPropagation();
+            var dropdown = document.getElementById('profileDropdown');
+            if (dropdown) dropdown.classList.toggle('show');
+        }
+        window.onclick = function(event) {
+            if (!event.target.closest('.profile-dropdown-btn')) {
+                var dropdowns = document.getElementsByClassName("profile-dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        // =============================================
+        // THEME (Cerah / Gelap / Sistem)
+        // =============================================
+        function isNightTime() {
+            // Sistem: 6 pagi - 6 petang = cerah, selain itu = gelap
+            var hour = new Date().getHours();
+            return hour < 6 || hour >= 18;
+        }
+        function applyTheme(pref) {
+            var isDark = pref === 'dark' || (pref === 'system' && isNightTime());
+            document.body.classList.toggle('dark-mode', isDark);
+            document.querySelectorAll('.theme-option').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-theme') === pref);
+            });
+        }
+        function setThemePreference(pref) {
+            localStorage.setItem('theme_pref', pref);
+            applyTheme(pref);
+        }
+        (function() {
+            var pref = localStorage.getItem('theme_pref');
+            if (!pref) {
+                // Migrate anyone who already had the old on/off toggle set
+                pref = localStorage.getItem('dark_mode') === 'true' ? 'dark' : 'system';
+            }
+            applyTheme(pref);
+            // Re-check periodically so "Sistem" mode crosses the day/night boundary
+            // automatically while the page is left open
+            setInterval(function() {
+                if ((localStorage.getItem('theme_pref') || 'system') === 'system') applyTheme('system');
+            }, 5 * 60 * 1000);
+        })();
+
+        // Initialize logic on load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (['super_admin', 'admin', 'ketua_unit'].includes(localStorage.getItem('user_role'))) {
+                var adminLink = document.getElementById('admin-panel-link');
+                if (adminLink) adminLink.style.display = 'flex';
+            }
+
+            // Fade + rise each section into view as the user scrolls to it
+            // (.reveal-stagger grids also cascade their cards in one-by-one)
+            var revealTargets = document.querySelectorAll('.reveal-on-scroll, .reveal-stagger');
+            if ('IntersectionObserver' in window && revealTargets.length) {
+                var revealObserver = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('revealed');
+                            revealObserver.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+                revealTargets.forEach(function(el) { revealObserver.observe(el); });
+            } else {
+                revealTargets.forEach(function(el) { el.classList.add('revealed'); });
+            }
+        });
+</script>
+</body>
+</html>

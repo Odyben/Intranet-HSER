@@ -1,0 +1,513 @@
+<?php require_once __DIR__ . '/api/ip_guard.php'; ?>
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/logo kkm.png" type="image/png">
+    <title>e-Borang — Intranet Hospital Serian</title>
+    <meta name="description" content="Pusat muat turun borang HR dan pentadbiran Hospital Serian.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/custom.css?v=27">
+</head>
+<body>
+
+    <!-- KKM OVERLAY HEADER -->
+    <header class="kkm-header-overlay">
+        <!-- UTILITY BAR (Gaya KKM - Top Bar) -->
+        <div class="utility-bar">
+            <div class="container">
+                <div class="utility-brand">
+                    <img src="images/logo kkm.png" alt="Logo KKM">
+                    <div class="utility-brand-text">
+                        <h1>PORTAL RASMI INTRANET</h1>
+                        <span>HOSPITAL SERIAN, KEMENTERIAN KESIHATAN MALAYSIA</span>
+                    </div>
+                </div>
+                                <div class="utility-actions">
+                    <div class="profile-dropdown">
+                        <div class="profile-dropdown-btn" onclick="toggleProfileDropdown(event)">
+                            <div class="utility-user-avatar" id="header-avatar">?</div>
+                            <div class="utility-user-name" id="header-name">Memuatkan...</div>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 2px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        
+                        <div class="profile-dropdown-content" id="profileDropdown">
+                            <div class="dropdown-item" id="admin-panel-link" style="display: none;" onclick="window.location.href='admin.html'">
+                                ⚙️ Pentadbir
+                            </div>
+                            <div class="dropdown-item theme-picker-item" onclick="event.stopPropagation();">
+                                <span class="theme-picker-label">Tema Paparan</span>
+                                <div class="theme-picker">
+                                    <button type="button" class="theme-option" data-theme="light" onclick="setThemePreference('light')" title="Mod Cerah">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                        Cerah
+                                    </button>
+                                    <button type="button" class="theme-option" data-theme="dark" onclick="setThemePreference('dark')" title="Mod Gelap">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                        Gelap
+                                    </button>
+                                    <button type="button" class="theme-option" data-theme="system" onclick="setThemePreference('system')" title="Ikut Sistem">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                                        Sistem
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="dropdown-item" onclick="handleLogout()" style="color: var(--red);">
+                                🔓 Log Keluar
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN NAV (Gaya KKM - Slim Bar) -->
+        <nav class="main-nav">
+            <div class="container" style="justify-content: center;">
+                <ul class="nav-menu" id="nav-menu">
+                    <li><a href="dashboard.html">Laman Utama</a></li>
+                    <li><a href="dokumen.html">Pusat Dokumen</a></li>
+                    <li><a href="borang-hr.html" class="active">Borang Rasmi</a></li>
+                    <li><a href="berita.html">Berita & Pengumuman</a></li>
+                    <li><a href="direktori.html">Direktori</a></li>
+                    <li><a href="tempahan-bilik.html">Tempahan Bilik</a></li>
+                </ul>
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle" title="Menu" style="position: absolute; right: 20px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header page-header-borang">
+        <h1>e-Borang</h1>
+        <p>Pusat muat turun borang sumber manusia dan pentadbiran Hospital Serian</p>
+    </div>
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="dashboard.html">Laman Utama</a> &rsaquo; <span>e-Borang</span>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="page-content">
+        <div class="utility-search" style="margin-bottom: 20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" placeholder="Cari borang HR..." id="search-borang">
+        </div>
+
+        <!-- KKM Banner -->
+        <div style="background: linear-gradient(135deg, #ffffff 0%, #f2f7fc 55%, #e3edf9 100%); border: 1px solid #dbe6f2; border-radius: var(--radius-lg); padding: 1.75rem; color: var(--navy); display: flex; flex-wrap:wrap; justify-content: space-between; align-items: center; gap: 1.5rem; box-shadow: var(--shadow-md); margin-bottom: 1.5rem;">
+            <div style="flex: 1; min-width: 250px;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; color: var(--navy);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                    Portal Borang Rasmi KKM
+                </h3>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+                    Borang tiada dalam senarai? Akses arkib penuh borang KKM melalui Portal Rasmi.
+                </p>
+            </div>
+            <a href="https://www.moh.gov.my/warga/muat-turun-borang" target="_blank" style="background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%); color: white; font-weight: 600; padding: 0.65rem 1.25rem; border-radius: var(--radius-md); font-size: 0.82rem; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,51,102,0.2);">
+                Ke Portal KKM
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+            </a>
+            <img src="images/logo-kkm-portal.png" alt="Portal Rasmi KKM" style="height:52px; width:auto; max-width:220px; object-fit:contain; flex-shrink:0;">
+        </div>
+
+        <!-- Category Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:1rem; background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); cursor:pointer; transition:all 0.25s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="filterByCategory('umum')">
+                <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#0C7B93,#0a9ab5);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+                <div><div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">Umum</div><div style="font-size:0.72rem;color:var(--text-light);" id="count-umum">0 borang</div></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:1rem; background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); cursor:pointer; transition:all 0.25s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="filterByCategory('pengurusan')">
+                <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#27AE60,#2ecc71);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg></div>
+                <div><div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">Bahagian Khidmat Pengurusan</div><div style="font-size:0.72rem;color:var(--text-light);" id="count-pengurusan">0 borang</div></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:1rem; background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); cursor:pointer; transition:all 0.25s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="filterByCategory('bpm')">
+                <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#F39C12,#f1c40f);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div>
+                <div><div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">Bahagian Pengurusan Maklumat</div><div style="font-size:0.72rem;color:var(--text-light);" id="count-bpm">0 borang</div></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:1rem; background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); cursor:pointer; transition:all 0.25s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="filterByCategory('kejururawatan')">
+                <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#E74C3C,#e67e22);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg></div>
+                <div><div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">Bhg. Kejururawatan & Kewangan</div><div style="font-size:0.72rem;color:var(--text-light);" id="count-kejururawatan">0 borang</div></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:1rem; background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); cursor:pointer; transition:all 0.25s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="filterByCategory('ppp')">
+                <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#9C27B0,#ba68c8);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+                <div><div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">Caw. Penolong Pegawai Perubatan</div><div style="font-size:0.72rem;color:var(--text-light);" id="count-ppp">0 borang</div></div>
+            </div>
+        </div>
+
+        <!-- Sort + Upload -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                <h3 style="font-size:1rem; font-weight:700; color:var(--text-primary);" id="doc-list-title">Semua Borang Lazim</h3>
+                <div style="position:relative;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute; left:0.6rem; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--text-light); pointer-events:none;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="search-borang-list" placeholder="Cari dalam senarai..." style="padding:0.45rem 0.75rem 0.45rem 2rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.78rem; font-family:inherit; background:white; color:var(--text-primary); width:240px; max-width:100%;">
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+                <select id="sort-docs" style="padding:0.45rem 0.75rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.78rem; font-family:inherit; background:white; cursor:pointer; color:var(--text-secondary);">
+                    <option value="terbaru">Terbaru</option>
+                    <option value="nama">Nama A-Z</option>
+                    <option value="saiz">Saiz Fail</option>
+                </select>
+                
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div style="background:white; border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-sm); border:1px solid var(--border-color);">
+            <table class="doc-table" id="doc-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                <thead>
+                    <tr style="background:var(--bg-light); border-bottom:1px solid var(--border-color);">
+                        <th style="padding:0.75rem 1rem; text-align:left; font-weight:700; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; width:45%;">Nama Borang</th>
+                        <th style="padding:0.75rem 1rem; text-align:left; font-weight:700; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">Kategori</th>
+                        <th style="padding:0.75rem 1rem; text-align:left; font-weight:700; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">Versi</th>
+                        <th style="padding:0.75rem 1rem; text-align:left; font-weight:700; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">Tarikh</th>
+                        <th style="padding:0.75rem 1rem; text-align:left; font-weight:700; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase;">Saiz</th>
+                        <th style="padding:0.75rem 1rem; text-align:center; font-weight:700; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; width:80px;">Tindakan</th>
+                    </tr>
+                </thead>
+                <tbody id="doc-table-body"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="gov-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col-main">
+                    <img src="images/logo kkm.png" alt="Logo KKM" class="footer-logo" style="width:120px; height:auto;">
+                    <div class="footer-address">
+                        <strong>HOSPITAL SERIAN</strong><br>
+                        Bandar Serian, 94700 Serian,<br>
+                        Sarawak.<br><br>
+                        <strong>Tel:</strong> 082-874 311<br>
+                        <strong>Faks:</strong> 082-874 311
+                    </div>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Pautan Utama</h4>
+                    <ul class="footer-links">
+                        <li><a href="dashboard.html">Laman Utama</a></li>
+                        <li><a href="dokumen.html">Pusat Dokumen & SOP</a></li>
+                        <li><a href="borang-hr.html">e-Borang</a></li>
+                        <li><a href="berita.html">Berita & Pengumuman</a></li>
+                        <li><a href="direktori.html">Direktori Staf</a></li>
+                        <li><a href="tempahan-bilik.html">Tempahan Bilik</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Pautan Luaran</h4>
+                    <ul class="footer-links" id="footer-luaran-list"></ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    © 2026 Hospital Serian, Kementerian Kesihatan Malaysia. Hak Cipta Terpelihara.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODALS: Preview, PDF Viewer -->
+    <div class="modal-overlay" id="doc-preview-modal">
+        <div class="modal-content" style="max-width: 600px;" onclick="event.stopPropagation()">
+            <div class="modal-header"><span style="font-weight:700;font-size:0.95rem;" id="preview-title">Borang</span><button class="modal-close" onclick="closePreview()"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
+            <div class="modal-body">
+                <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border-color);"><div class="doc-file-icon" id="preview-icon">PDF</div><div><p style="font-size:0.85rem;font-weight:600;" id="preview-filename">—</p><p style="font-size:0.75rem;color:var(--text-light);" id="preview-meta">—</p></div></div>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div style="background:var(--bg-light);border-radius:var(--radius-md);padding:0.75rem;"><p style="font-size:0.7rem;color:var(--text-light);margin-bottom:0.2rem;">Kategori</p><p style="font-size:0.82rem;font-weight:600;" id="preview-category">—</p></div>
+                    <div style="background:var(--bg-light);border-radius:var(--radius-md);padding:0.75rem;"><p style="font-size:0.7rem;color:var(--text-light);margin-bottom:0.2rem;">Versi</p><p style="font-size:0.82rem;font-weight:600;" id="preview-version">—</p></div>
+                    <div style="background:var(--bg-light);border-radius:var(--radius-md);padding:0.75rem;"><p style="font-size:0.7rem;color:var(--text-light);margin-bottom:0.2rem;">Dimuat Naik Oleh</p><p style="font-size:0.82rem;font-weight:600;" id="preview-uploader">—</p></div>
+                    <div style="background:var(--bg-light);border-radius:var(--radius-md);padding:0.75rem;"><p style="font-size:0.7rem;color:var(--text-light);margin-bottom:0.2rem;">Saiz Fail</p><p style="font-size:0.82rem;font-weight:600;" id="preview-size">—</p></div>
+                </div>
+                <div id="preview-desc-section" style="display:none;"><p style="font-size:0.78rem;font-weight:600;margin-bottom:0.3rem;">Keterangan</p><p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;" id="preview-desc">—</p></div>
+            </div>
+            <div class="modal-footer">
+                <button style="padding:0.55rem 1rem;border-radius:var(--radius-md);font-size:0.82rem;border:1px solid var(--border-color);background:white;cursor:pointer;font-family:inherit;" onclick="closePreview()">Tutup</button>
+                <button id="preview-view-btn" class="btn-login" style="width:auto;padding:0.55rem 1.25rem;font-size:0.82rem;display:none;">Preview</button>
+                <button id="preview-download-btn" class="btn-login" style="width:auto;padding:0.55rem 1.25rem;font-size:0.82rem;">Muat Turun</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="pdf-viewer-modal" style="z-index: 2000;">
+        <div class="modal-content" style="max-width: 900px; height: 90vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+            <div class="modal-header"><span style="font-weight:700;font-size:0.95rem;" id="pdf-viewer-title">Preview Borang</span><button class="modal-close" onclick="closePdfPreview()"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div>
+            <div class="modal-body" style="flex:1;padding:0;overflow:hidden;background:#333;"><iframe id="pdf-viewer-iframe" src="" style="width:100%;height:100%;border:none;"></iframe></div>
+        </div>
+    </div>
+
+    <script>
+        // Navbar Scroll Effect
+        window.addEventListener('scroll', function() {
+            var header = document.querySelector('.kkm-header-overlay');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // =============================================
+        // MOCK DATA & INIT
+        // =============================================
+        (function() {
+            if (localStorage.getItem('user_authenticated') !== 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
+            var userName = localStorage.getItem('user_name') || 'Pengguna';
+            var userPicture = localStorage.getItem('user_picture') || '';
+            var headerName = document.getElementById('header-name');
+            var headerAvatar = document.getElementById('header-avatar');
+            function titleCase(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
+            if (headerName) headerName.textContent = titleCase(userName.split(' ')[0]);
+            if (headerAvatar && userPicture) {
+                headerAvatar.innerHTML = '<img src="' + userPicture + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+            } else if (headerAvatar) {
+                headerAvatar.textContent = userName.split(' ').map(function(n){return n[0];}).join('').substring(0,2).toUpperCase();
+            }
+            window.handleLogout = function() { localStorage.clear(); window.location.href = 'index.html'; };
+
+            // Mobile Nav
+            document.getElementById('mobile-nav-toggle').addEventListener('click', function() {
+                document.getElementById('nav-menu').classList.toggle('open');
+            });
+
+            var borangData = [];
+
+            var currentFilter = 'all';
+            var fileColors = { pdf: '#E74C3C', docx: '#2196F3', doc: '#2196F3', xlsx: '#27AE60', xls: '#27AE60', pptx: '#F39C12' };
+
+            function getFileIcon(type) {
+                var color = fileColors[type] || '#666';
+                return '<div class="doc-file-icon" style="background:' + color + '15; color:' + color + ';">' + type.toUpperCase() + '</div>';
+            }
+
+            function renderDocs(filter) {
+                currentFilter = filter || 'all';
+                var tbody = document.getElementById('doc-table-body');
+                tbody.innerHTML = '';
+                var filtered = borangData.filter(function(d) { return filter === 'all' || d.category === filter; });
+                var searchVal = (document.getElementById('search-borang').value || '').toLowerCase();
+                if (searchVal) { filtered = filtered.filter(function(d) { return d.name.toLowerCase().indexOf(searchVal) > -1 || d.catLabel.toLowerCase().indexOf(searchVal) > -1; }); }
+                if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-light);font-size:0.85rem;">Tiada borang dijumpai.</td></tr>'; return; }
+                filtered = susunBorang(filtered, document.getElementById('sort-docs').value);
+                filtered.forEach(function(doc) {
+                    var tr = document.createElement('tr');
+                    tr.style.cursor = 'pointer'; tr.style.borderBottom = '1px solid var(--border-color)';
+                    tr.onclick = function() { openPreview(doc); };
+                    tr.onmouseover = function() { tr.style.background = '#f8faff'; };
+                    tr.onmouseout = function() { tr.style.background = ''; };
+                    tr.innerHTML =
+                        '<td style="padding:0.75rem 1rem;"><div style="display:flex;align-items:center;gap:0.75rem;">' + getFileIcon(doc.type) + '<div><p style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:0.15rem;">' + doc.name + '</p><p style="font-size:0.72rem;color:var(--text-light);">Oleh ' + doc.uploader + '</p></div></div></td>' +
+                        '<td style="padding:0.75rem 1rem;"><span style="display:inline-block;padding:0.2rem 0.6rem;border-radius:4px;font-size:0.72rem;font-weight:600;background:var(--bg-light);color:var(--text-secondary);">' + doc.catLabel + '</span></td>' +
+                        '<td style="padding:0.75rem 1rem;font-size:0.82rem;color:var(--text-secondary);">' + doc.version + '</td>' +
+                        '<td style="padding:0.75rem 1rem;font-size:0.82rem;color:var(--text-secondary);">' + doc.date + '</td>' +
+                        '<td style="padding:0.75rem 1rem;font-size:0.82rem;color:var(--text-secondary);">' + doc.size + '</td>' +
+                        '<td style="padding:0.75rem 1rem;text-align:center;"><div style="display:flex;justify-content:center;gap:0.4rem;">' +
+                            (doc.type === 'pdf' ? '<button style="padding:0.35rem;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:white;cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;" title="Preview" onclick="event.stopPropagation();openPdfPreview(\'' + doc.file + '\',\'' + doc.name + '\')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>' : '') +
+                            '<button style="padding:0.35rem;border:1px solid var(--border-color);border-radius:var(--radius-sm);background:white;cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;" title="Muat Turun" onclick="event.stopPropagation();window.open(\'' + doc.file + '\',\'_blank\')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button></div></td>';
+                    tbody.appendChild(tr);
+                });
+                var titleEl = document.getElementById('doc-list-title');
+                titleEl.textContent = (filter === 'all' ? 'Semua Borang Lazim' : (filtered.length > 0 ? filtered[0].catLabel : filter)) + ' (' + filtered.length + ')';
+                updateCategoryCounts();
+            }
+
+            // Saiz disimpan sebagai teks ("1.8 MB", "44 KB") — tukar ke bait untuk disusun
+            function saizBait(s) {
+                var m = /([\d.]+)\s*(B|KB|MB|GB)\b/i.exec(s || '');
+                if (!m) return 0;
+                return parseFloat(m[1]) * { B: 1, KB: 1024, MB: 1048576, GB: 1073741824 }[m[2].toUpperCase()];
+            }
+
+            function susunBorang(list, susun) {
+                return list.slice().sort(function(a, b) {
+                    if (susun === 'nama') return a.name.localeCompare(b.name, 'ms', { sensitivity: 'base' });
+                    if (susun === 'saiz') return saizBait(b.size) - saizBait(a.size);
+                    // Terbaru: ikut masa dimuat naik, bukan lajur Tarikh — lajur itu
+                    // tarikh versi borang dan formatnya tidak seragam.
+                    return (b.uploaded_at || '').localeCompare(a.uploaded_at || '') || (b.id - a.id);
+                });
+            }
+
+            function updateCategoryCounts() {
+                var counts = { umum: 0, pengurusan: 0, bpm: 0, kejururawatan: 0, ppp: 0 };
+                borangData.forEach(function(d) { if (counts[d.category] !== undefined) counts[d.category]++; });
+                for (var key in counts) { var el = document.getElementById('count-' + key); if (el) el.textContent = counts[key] + ' borang'; }
+            }
+
+            window.filterByCategory = function(cat) { renderDocs(cat); document.getElementById('doc-list-title').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+
+            function openPreview(doc) {
+                document.getElementById('preview-title').textContent = doc.name;
+                document.getElementById('preview-filename').textContent = doc.name + '.' + doc.type;
+                document.getElementById('preview-meta').textContent = doc.date + ' \u2022 ' + doc.size;
+                document.getElementById('preview-category').textContent = doc.catLabel;
+                document.getElementById('preview-version').textContent = doc.version;
+                document.getElementById('preview-uploader').textContent = doc.uploader;
+                document.getElementById('preview-size').textContent = doc.size;
+                var iconEl = document.getElementById('preview-icon'); var color = fileColors[doc.type] || '#666';
+                iconEl.textContent = doc.type.toUpperCase(); iconEl.style.background = color + '15'; iconEl.style.color = color;
+                var ds = document.getElementById('preview-desc-section'); if (doc.desc) { ds.style.display='block'; document.getElementById('preview-desc').textContent=doc.desc; } else { ds.style.display='none'; }
+                var vb = document.getElementById('preview-view-btn'); if (doc.type==='pdf') { vb.style.display='flex'; vb.onclick=function(){openPdfPreview(doc.file,doc.name);}; } else { vb.style.display='none'; }
+                document.getElementById('preview-download-btn').onclick = function() { window.open(doc.file, '_blank'); };
+                document.getElementById('doc-preview-modal').classList.add('active'); document.body.style.overflow = 'hidden';
+            }
+            window.closePreview = function() { document.getElementById('doc-preview-modal').classList.remove('active'); document.body.style.overflow = ''; };
+            document.getElementById('doc-preview-modal').addEventListener('click', function(e) { if (e.target === this) closePreview(); });
+
+            window.openPdfPreview = function(url, title) { document.getElementById('pdf-viewer-title').textContent = title || 'Preview Borang'; document.getElementById('pdf-viewer-iframe').src = url; document.getElementById('pdf-viewer-modal').classList.add('active'); document.body.style.overflow = 'hidden'; };
+            window.closePdfPreview = function() { document.getElementById('pdf-viewer-modal').classList.remove('active'); document.getElementById('pdf-viewer-iframe').src = ''; if (!document.getElementById('doc-preview-modal').classList.contains('active')) document.body.style.overflow = ''; };
+            document.getElementById('pdf-viewer-modal').addEventListener('click', function(e) { if (e.target === this) closePdfPreview(); });
+
+            // Dua kotak carian (atas halaman dan di sebelah senarai) sentiasa sama isinya
+            ['search-borang', 'search-borang-list'].forEach(function(id, i, ids) {
+                document.getElementById(id).addEventListener('input', function() {
+                    document.getElementById(ids[1 - i]).value = this.value;
+                    renderDocs(currentFilter);
+                });
+            });
+            document.getElementById('sort-docs').addEventListener('change', function() { renderDocs(currentFilter); });
+            document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closePreview(); closePdfPreview(); } });
+
+            if (headerAvatar && userPicture) { headerAvatar.innerHTML = '<img src="' + userPicture + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'; }
+            else if (headerAvatar) { headerAvatar.textContent = userName.split(' ').map(function(n){return n[0];}).join('').substring(0,2).toUpperCase(); }
+            window.handleLogout = function() { localStorage.clear(); window.location.href = 'index.html'; };
+
+            // Show loading state
+            document.getElementById('doc-table-body').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:3rem; color:var(--text-light);">Memuatkan borang...</td></tr>';
+            loadBorangData(true);
+
+            // Background auto-refresh (keeps the list live without a manual reload)
+            setInterval(function() {
+                if (document.visibilityState === 'visible' && !document.querySelector('.modal-overlay.active')) {
+                    loadBorangData(false);
+                }
+            }, 7000);
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible' && !document.querySelector('.modal-overlay.active')) {
+                    loadBorangData(false);
+                }
+            });
+
+            // Fetch from API
+            function loadBorangData(isInitialLoad) {
+                fetch('api/borang.php')
+                    .then(r => r.json())
+                    .then(function(res) {
+                        borangData = res;
+                        renderDocs(currentFilter);
+                    })
+                    .catch(function(err) {
+                        console.error("Gagal ambil data borang:", err);
+                        if (isInitialLoad) {
+                            document.getElementById('doc-table-body').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:3rem; color:red;">Gagal memuatkan borang. Sila pastikan MySQL sudah running.</td></tr>';
+                        }
+                    });
+            }
+        })();
+    </script>
+
+<script>
+        // --- Profile Dropdown & Dark Mode Logic ---
+        function toggleProfileDropdown(e) {
+            e.stopPropagation();
+            var dropdown = document.getElementById('profileDropdown');
+            if (dropdown) dropdown.classList.toggle('show');
+        }
+        window.onclick = function(event) {
+            if (!event.target.closest('.profile-dropdown-btn')) {
+                var dropdowns = document.getElementsByClassName("profile-dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        // =============================================
+        // THEME (Cerah / Gelap / Sistem)
+        // =============================================
+        function isNightTime() {
+            // Sistem: 6 pagi - 6 petang = cerah, selain itu = gelap
+            var hour = new Date().getHours();
+            return hour < 6 || hour >= 18;
+        }
+        function applyTheme(pref) {
+            var isDark = pref === 'dark' || (pref === 'system' && isNightTime());
+            document.body.classList.toggle('dark-mode', isDark);
+            document.querySelectorAll('.theme-option').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-theme') === pref);
+            });
+        }
+        function setThemePreference(pref) {
+            localStorage.setItem('theme_pref', pref);
+            applyTheme(pref);
+        }
+        (function() {
+            var pref = localStorage.getItem('theme_pref');
+            if (!pref) {
+                pref = localStorage.getItem('dark_mode') === 'true' ? 'dark' : 'system';
+            }
+            applyTheme(pref);
+            setInterval(function() {
+                if ((localStorage.getItem('theme_pref') || 'system') === 'system') applyTheme('system');
+            }, 5 * 60 * 1000);
+        })();
+
+        // Initialize logic on load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (['super_admin', 'admin', 'ketua_unit'].includes(localStorage.getItem('user_role'))) {
+                var adminLink = document.getElementById('admin-panel-link');
+                if (adminLink) adminLink.style.display = 'flex';
+            }
+        });
+</script>
+<script>
+    (function loadFooterPautanLuaran() {
+        var list = document.getElementById('footer-luaran-list');
+        if (!list) return;
+        function esc(s) {
+            var d = document.createElement('div');
+            d.textContent = s == null ? '' : s;
+            return d.innerHTML;
+        }
+        fetch('api/pautan.php?type=pautan_luaran')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var items = data.data || [];
+                list.innerHTML = items.map(function(p) {
+                    var external = /^https?:\/\//i.test(p.url);
+                    return '<li><a href="' + esc(p.url) + '"' + (external ? ' target="_blank"' : '') + '>' + esc(p.title) + '</a></li>';
+                }).join('');
+            })
+            .catch(function(err) { console.error('Pautan Luaran load error:', err); });
+    })();
+</script>
+
+</body>
+</html>
+
+

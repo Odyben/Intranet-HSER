@@ -1,0 +1,908 @@
+<?php require_once __DIR__ . '/api/ip_guard.php'; ?>
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/logo kkm.png" type="image/png">
+    <title>Pusat Dokumen & SOP — Intranet Hospital Serian</title>
+    <meta name="description" content="Pusat dokumen rasmi Hospital Serian. SOP klinikal, pekeliling KKM, polisi dan borang.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/custom.css?v=27">
+</head>
+<body>
+
+    <!-- KKM OVERLAY HEADER -->
+    <header class="kkm-header-overlay">
+        <!-- UTILITY BAR (Gaya KKM - Top Bar) -->
+        <div class="utility-bar">
+            <div class="container">
+                <div class="utility-brand">
+                    <img src="images/logo kkm.png" alt="Logo KKM">
+                    <div class="utility-brand-text">
+                        <h1>PORTAL RASMI INTRANET</h1>
+                        <span>HOSPITAL SERIAN, KEMENTERIAN KESIHATAN MALAYSIA</span>
+                    </div>
+                </div>
+                                <div class="utility-actions">
+                    <div class="profile-dropdown">
+                        <div class="profile-dropdown-btn" onclick="toggleProfileDropdown(event)">
+                            <div class="utility-user-avatar" id="header-avatar">?</div>
+                            <div class="utility-user-name" id="header-name">Memuatkan...</div>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 2px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        
+                        <div class="profile-dropdown-content" id="profileDropdown">
+                            <div class="dropdown-item" id="admin-panel-link" style="display: none;" onclick="window.location.href='admin.html'">
+                                ⚙️ Pentadbir
+                            </div>
+                            <div class="dropdown-item theme-picker-item" onclick="event.stopPropagation();">
+                                <span class="theme-picker-label">Tema Paparan</span>
+                                <div class="theme-picker">
+                                    <button type="button" class="theme-option" data-theme="light" onclick="setThemePreference('light')" title="Mod Cerah">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                        Cerah
+                                    </button>
+                                    <button type="button" class="theme-option" data-theme="dark" onclick="setThemePreference('dark')" title="Mod Gelap">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                        Gelap
+                                    </button>
+                                    <button type="button" class="theme-option" data-theme="system" onclick="setThemePreference('system')" title="Ikut Sistem">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                                        Sistem
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="dropdown-item" onclick="handleLogout()" style="color: var(--red);">
+                                🔓 Log Keluar
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN NAV (Gaya KKM - Slim Bar) -->
+        <nav class="main-nav">
+            <div class="container" style="justify-content: center;">
+                <ul class="nav-menu" id="nav-menu">
+                    <li><a href="dashboard.html">Laman Utama</a></li>
+                    <li><a href="dokumen.html" class="active">Pusat Dokumen</a></li>
+                    <li><a href="borang-hr.html">Borang Rasmi</a></li>
+                    <li><a href="berita.html">Berita & Pengumuman</a></li>
+                    <li><a href="direktori.html">Direktori</a></li>
+                    <li><a href="tempahan-bilik.html">Tempahan Bilik</a></li>
+                </ul>
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle" title="Menu" style="position: absolute; right: 20px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header page-header-dokumen">
+        <h1>Pusat Dokumen & SOP</h1>
+        <p>Repositori dokumen rasmi Hospital Serian — SOP, Polisi, Pekeliling & Borang</p>
+    </div>
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="dashboard.html">Laman Utama</a> &rsaquo; <span>Pusat Dokumen & SOP</span>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="page-content">
+
+        <!-- Search Bar -->
+        <div class="utility-search" style="margin-bottom: 20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" placeholder="Cari dokumen SOP, polisi..." id="search-docs">
+        </div>
+
+        <!-- Memo (untuk semua staf) -->
+        <div id="memo-bahagian" style="background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); margin-bottom:1.5rem; overflow:hidden;" hidden>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; flex-wrap:wrap; padding:0.9rem 1.25rem; border-bottom:1px solid var(--border-color);">
+                <h3 style="font-size:1rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:0.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M4 4h16v16H4z"></path><polyline points="4 4 12 13 20 4"></polyline></svg>
+                    Memo <span id="memo-bil" style="font-size:0.78rem; font-weight:500; color:var(--text-light);"></span>
+                </h3>
+                <span style="font-size:0.75rem; color:var(--text-light);">Terkini di atas</span>
+            </div>
+            <div id="memo-senarai"></div>
+            <div id="memo-lagi" style="padding:0.6rem 1.25rem; text-align:center;" hidden></div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stat-strip" style="margin-bottom: 1.5rem;">
+            <div class="stat-card-portal blue">
+                <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+                <div class="stat-value">29</div>
+                <div class="stat-label">Jumlah Dokumen</div>
+            </div>
+            <div class="stat-card-portal green">
+                <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+                <div class="stat-value">29</div>
+                <div class="stat-label">Terkini</div>
+            </div>
+            <div class="stat-card-portal amber">
+                <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                <div class="stat-value">0</div>
+                <div class="stat-label">Perlu Kemas Kini</div>
+            </div>
+            <div class="stat-card-portal red">
+                <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div>
+                <div class="stat-value">6</div>
+                <div class="stat-label">Kategori</div>
+            </div>
+        </div>
+
+        <!-- Category Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-6">
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:1rem; background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); cursor:pointer; transition:all 0.25s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="filterByCategory('polisi-klinikal')">
+                <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#0C7B93,#0a9ab5);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg></div>
+                <div><div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">Polisi Klinikal</div><div style="font-size:0.72rem;color:var(--text-light);">9 dokumen</div></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:1rem; background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); cursor:pointer; transition:all 0.25s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="filterByCategory('polisi-jabatan')">
+                <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#27AE60,#2ecc71);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                <div><div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">Polisi Jabatan</div><div style="font-size:0.72rem;color:var(--text-light);">11 dokumen</div></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:1rem; background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); cursor:pointer; transition:all 0.25s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="filterByCategory('polisi-pentadbiran')">
+                <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#F39C12,#f1c40f);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+                <div><div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">Polisi Pentadbiran</div><div style="font-size:0.72rem;color:var(--text-light);">3 dokumen</div></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:1rem; background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); cursor:pointer; transition:all 0.25s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="filterByCategory('bylaws')">
+                <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#E74C3C,#e67e22);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+                <div><div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">Undang-undang Kecil</div><div style="font-size:0.72rem;color:var(--text-light);">2 dokumen</div></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:1rem; background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); cursor:pointer; transition:all 0.25s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="filterByCategory('borang')">
+                <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#9C27B0,#ba68c8);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></div>
+                <div><div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">Borang & Templat</div><div style="font-size:0.72rem;color:var(--text-light);">1 dokumen</div></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:1rem; background:white; border:1px solid var(--border-color); border-radius:var(--radius-lg); cursor:pointer; transition:all 0.25s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-color)'" onclick="filterByCategory('lain')">
+                <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#2196F3,#42a5f5);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div>
+                <div><div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">Lain-lain</div><div style="font-size:0.72rem;color:var(--text-light);">3 dokumen</div></div>
+            </div>
+        </div>
+
+        <!-- Document Table Header -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                <h3 style="font-size:1rem; font-weight:700; color:var(--text-primary);" id="doc-list-title">Semua Dokumen</h3>
+                <div style="position:relative;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute; left:0.6rem; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--text-light); pointer-events:none;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="search-docs-list" placeholder="Cari dalam senarai..." style="padding:0.45rem 0.75rem 0.45rem 2rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.78rem; font-family:inherit; background:white; color:var(--text-primary); width:240px; max-width:100%;">
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+                <select id="sort-docs" style="padding:0.45rem 0.75rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:0.78rem; font-family:inherit; background:white; cursor:pointer; color:var(--text-secondary);">
+                    <option value="terbaru">Terbaru</option>
+                    <option value="nama">Nama A-Z</option>
+                    <option value="saiz">Saiz Fail</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Document Table -->
+        <div style="background:white; border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-sm); border:1px solid var(--border-color);">
+            <table class="doc-table" id="doc-table" style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                <thead>
+                    <tr style="background:var(--bg-light); border-bottom:1px solid var(--border-color);">
+                        <th style="padding:0.75rem 1rem; text-align:left; font-weight:700; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; width:45%;">Nama Dokumen</th>
+                        <th style="padding:0.75rem 1rem; text-align:left; font-weight:700; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em;">Kategori</th>
+                        <th style="padding:0.75rem 1rem; text-align:left; font-weight:700; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em;">Versi</th>
+                        <th style="padding:0.75rem 1rem; text-align:left; font-weight:700; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em;">Tarikh</th>
+                        <th style="padding:0.75rem 1rem; text-align:left; font-weight:700; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em;">Saiz</th>
+                        <th style="padding:0.75rem 1rem; text-align:center; font-weight:700; font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; width:80px;">Tindakan</th>
+                    </tr>
+                </thead>
+                <tbody id="doc-table-body"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="gov-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <!-- Column 1: Info & Contact -->
+                <div class="footer-col-main">
+                    <img src="images/logo kkm.png" alt="Logo KKM" class="footer-logo" style="width:120px; height:auto;">
+                    <div class="footer-address">
+                        <strong>HOSPITAL SERIAN</strong><br>
+                        Bandar Serian, 94700 Serian,<br>
+                        Sarawak.<br><br>
+                        <strong>Tel:</strong> 082-874 311<br>
+                        <strong>Faks:</strong> 082-874 311
+                    </div>
+                </div>
+
+                <!-- Column 2: Pautan Utama -->
+                <div>
+                    <h4 class="footer-heading">Pautan Utama</h4>
+                    <ul class="footer-links">
+                        <li><a href="dashboard.html">Laman Utama</a></li>
+                        <li><a href="dokumen.html">Pusat Dokumen & SOP</a></li>
+                        <li><a href="borang-hr.html">e-Borang</a></li>
+                        <li><a href="berita.html">Berita & Pengumuman</a></li>
+                        <li><a href="direktori.html">Direktori Staf</a></li>
+                        <li><a href="tempahan-bilik.html">Tempahan Bilik</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Pautan Luaran -->
+                <div>
+                    <h4 class="footer-heading">Pautan Luaran</h4>
+                    <ul class="footer-links" id="footer-luaran-list"></ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    © 2026 Hospital Serian, Kementerian Kesihatan Malaysia. Hak Cipta Terpelihara.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============================================
+         UPLOAD FORM MODAL
+         ============================================ -->
+    <div class="modal-overlay" id="upload-modal">
+        <div class="modal-content" style="max-width: 540px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--blue);"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">Muat Naik Dokumen</span>
+                </div>
+                <button class="modal-close" onclick="closeUploadForm()" title="Tutup">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <form id="upload-form" onsubmit="submitUpload(event)">
+                <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display:block; font-size:0.78rem; font-weight:600; color:var(--text-primary); margin-bottom:0.4rem;">Nama Dokumen *</label>
+                        <input type="text" id="doc-name" required placeholder="cth: SOP Pengurusan Wad" style="width:100%; padding:0.7rem 0.9rem; border:1px solid var(--border-color); border-radius:var(--radius-md); font-size:0.85rem; font-family:inherit; outline:none; transition:border 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border-color)'">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display:block; font-size:0.78rem; font-weight:600; color:var(--text-primary); margin-bottom:0.4rem;">Kategori *</label>
+                        <select id="doc-category" required style="width:100%; padding:0.7rem 0.9rem; border:1px solid var(--border-color); border-radius:var(--radius-md); font-size:0.85rem; font-family:inherit; outline:none; background:white; cursor:pointer;">
+                            <option value="" disabled selected>Pilih kategori...</option>
+                            <option value="sop-klinikal">SOP Klinikal</option>
+                            <option value="sop-bukan-klinikal">SOP Bukan Klinikal</option>
+                            <option value="pekeliling">Pekeliling KKM</option>
+                            <option value="polisi">Polisi & Garis Panduan</option>
+                            <option value="borang">Borang & Templat</option>
+                            <option value="lain">Lain-lain</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display:block; font-size:0.78rem; font-weight:600; color:var(--text-primary); margin-bottom:0.4rem;">Nombor Versi</label>
+                        <input type="text" id="doc-version" placeholder="cth: 3.2" style="width:100%; padding:0.7rem 0.9rem; border:1px solid var(--border-color); border-radius:var(--radius-md); font-size:0.85rem; font-family:inherit; outline:none; transition:border 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border-color)'">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display:block; font-size:0.78rem; font-weight:600; color:var(--text-primary); margin-bottom:0.4rem;">Fail Dokumen *</label>
+                        <div id="doc-dropzone" onclick="document.getElementById('doc-file').click()" style="border: 2px dashed var(--border-color); border-radius:var(--radius-md); padding:1.5rem; text-align:center; cursor:pointer; transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--blue); margin: 0 auto 0.5rem; display:block;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <p style="font-size: 0.82rem; color: var(--text-secondary); font-weight: 500;" id="dropzone-text">Klik untuk pilih fail atau seret & lepas</p>
+                            <p style="font-size: 0.7rem; color: var(--text-light); margin-top: 0.25rem;">PDF, DOC, DOCX, XLS, XLSX (Maks 10MB)</p>
+                            <input type="file" id="doc-file" accept=".pdf,.doc,.docx,.xls,.xlsx" style="display:none;" onchange="handleFileSelect(this)">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.78rem; font-weight:600; color:var(--text-primary); margin-bottom:0.4rem;">Keterangan (Pilihan)</label>
+                        <textarea id="doc-desc" rows="2" placeholder="Tulis keterangan ringkas tentang dokumen ini..." style="width:100%; padding:0.7rem 0.9rem; border:1px solid var(--border-color); border-radius:var(--radius-md); font-size:0.85rem; font-family:inherit; outline:none; resize:vertical; transition:border 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border-color)'"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer" style="gap: 0.5rem;">
+                    <button type="button" style="padding:0.55rem 1rem; border-radius:var(--radius-md); font-size:0.82rem; font-weight:500; font-family:inherit; cursor:pointer; color:var(--text-secondary); border:1px solid var(--border-color); background:white;" onclick="closeUploadForm()">Batal</button>
+                    <button type="submit" class="btn-login" style="width:auto; padding:0.55rem 1.25rem; font-size:0.82rem;">Muat Naik</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================
+         DOCUMENT PREVIEW MODAL
+         ============================================ -->
+    <div class="modal-overlay" id="doc-preview-modal">
+        <div class="modal-content" style="max-width: 600px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);" id="preview-title">Dokumen</span>
+                <button class="modal-close" onclick="closePreview()" title="Tutup">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem; padding-bottom:1rem; border-bottom:1px solid var(--border-color);">
+                    <div class="doc-file-icon" id="preview-icon">PDF</div>
+                    <div>
+                        <p style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);" id="preview-filename">—</p>
+                        <p style="font-size: 0.75rem; color: var(--text-light);" id="preview-meta">—</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div style="background: var(--bg-light); border-radius: var(--radius-md); padding: 0.75rem;">
+                        <p style="font-size: 0.7rem; color: var(--text-light); margin-bottom: 0.2rem;">Kategori</p>
+                        <p style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);" id="preview-category">—</p>
+                    </div>
+                    <div style="background: var(--bg-light); border-radius: var(--radius-md); padding: 0.75rem;">
+                        <p style="font-size: 0.7rem; color: var(--text-light); margin-bottom: 0.2rem;">Versi</p>
+                        <p style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);" id="preview-version">—</p>
+                    </div>
+                    <div style="background: var(--bg-light); border-radius: var(--radius-md); padding: 0.75rem;">
+                        <p style="font-size: 0.7rem; color: var(--text-light); margin-bottom: 0.2rem;">Dimuat Naik Oleh</p>
+                        <p style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);" id="preview-uploader">—</p>
+                    </div>
+                    <div style="background: var(--bg-light); border-radius: var(--radius-md); padding: 0.75rem;">
+                        <p style="font-size: 0.7rem; color: var(--text-light); margin-bottom: 0.2rem;">Saiz Fail</p>
+                        <p style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);" id="preview-size">—</p>
+                    </div>
+                </div>
+                <div id="preview-desc-section" style="display:none;">
+                    <p style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.3rem;">Keterangan</p>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6;" id="preview-desc">—</p>
+                </div>
+            </div>
+            <div class="modal-footer" style="gap: 0.5rem;">
+                <button style="padding:0.55rem 1rem; border-radius:var(--radius-md); font-size:0.82rem; font-weight:500; font-family:inherit; cursor:pointer; color:var(--text-secondary); border:1px solid var(--border-color); background:white;" onclick="closePreview()">Tutup</button>
+                <button id="preview-view-btn" class="btn-login" style="width:auto; padding:0.55rem 1.25rem; font-size:0.82rem; display:none; align-items:center; gap:0.3rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    Preview
+                </button>
+                <button id="preview-download-btn" class="btn-login" style="width:auto; padding:0.55rem 1.25rem; font-size:0.82rem; display:flex; align-items:center; gap:0.3rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Muat Turun
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         PDF VIEWER MODAL
+         ============================================ -->
+    <div class="modal-overlay" id="pdf-viewer-modal" style="z-index: 2000;">
+        <div class="modal-content" style="max-width: 900px; height: 90vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);" id="pdf-viewer-title">Preview Dokumen</span>
+                <button class="modal-close" onclick="closePdfPreview()" title="Tutup">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="flex: 1; padding: 0; overflow: hidden; background: #333;">
+                <iframe id="pdf-viewer-iframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data globals
+        var docsData = [];
+
+        // =============================================
+        // Mobile Nav
+        // =============================================
+        document.getElementById('mobile-nav-toggle').addEventListener('click', function() {
+            document.getElementById('nav-menu').classList.toggle('open');
+        });
+
+        var currentFilter = 'all';
+
+        // =============================================
+        // FILE TYPE ICONS
+        // =============================================
+        var fileColors = { pdf: '#E74C3C', docx: '#2196F3', doc: '#2196F3', xlsx: '#27AE60', xls: '#27AE60', pptx: '#F39C12' };
+
+        function getFileIcon(type) {
+            var color = fileColors[type] || '#666';
+            return '<div class="doc-file-icon" style="background:' + color + '15; color:' + color + ';">' + type.toUpperCase() + '</div>';
+        }
+
+        // =============================================
+        // RENDER TABLE
+        // =============================================
+        function renderDocs(filter) {
+            currentFilter = filter || 'all';
+            var tbody = document.getElementById('doc-table-body');
+            tbody.innerHTML = '';
+
+            var filtered = docsData.filter(function(d) {
+                return filter === 'all' || d.category === filter;
+            });
+
+            var searchVal = (document.getElementById('search-docs').value || '').toLowerCase();
+            if (searchVal) {
+                filtered = filtered.filter(function(d) {
+                    return d.name.toLowerCase().indexOf(searchVal) > -1 || d.catLabel.toLowerCase().indexOf(searchVal) > -1;
+                });
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-light); font-size:0.85rem;">Tiada dokumen dijumpai.</td></tr>';
+                return;
+            }
+
+            filtered = susunDokumen(filtered, document.getElementById('sort-docs').value);
+
+            filtered.forEach(function(doc) {
+                var tr = document.createElement('tr');
+                tr.style.cursor = 'pointer';
+                tr.style.borderBottom = '1px solid var(--border-color)';
+                tr.onclick = function() { openPreview(doc); };
+                tr.onmouseover = function() { tr.style.background = '#f8faff'; };
+                tr.onmouseout = function() { tr.style.background = ''; };
+
+                tr.innerHTML =
+                    '<td style="padding:0.75rem 1rem;">' +
+                        '<div style="display:flex; align-items:center; gap:0.75rem;">' +
+                            getFileIcon(doc.type) +
+                            '<div>' +
+                                '<p style="font-size:0.85rem; font-weight:600; color:var(--text-primary); margin-bottom:0.15rem;">' + doc.name + '</p>' +
+                                '<p style="font-size:0.72rem; color:var(--text-light);">Oleh ' + doc.uploader + '</p>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td style="padding:0.75rem 1rem;"><span style="display:inline-block; padding:0.2rem 0.6rem; border-radius:4px; font-size:0.72rem; font-weight:600; background:var(--bg-light); color:var(--text-secondary);">' + doc.catLabel + '</span></td>' +
+                    '<td style="padding:0.75rem 1rem; font-size:0.82rem; color:var(--text-secondary);">' + doc.version + '</td>' +
+                    '<td style="padding:0.75rem 1rem; font-size:0.82rem; color:var(--text-secondary);">' + doc.date + '</td>' +
+                    '<td style="padding:0.75rem 1rem; font-size:0.82rem; color:var(--text-secondary);">' + doc.size + '</td>' +
+                    '<td style="padding:0.75rem 1rem; text-align:center;">' +
+                        '<div style="display:flex; justify-content:center; gap:0.4rem;">' +
+                            (doc.type.toLowerCase() === 'pdf' ?
+                            '<button style="padding:0.35rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); background:white; cursor:pointer; color:var(--text-secondary); display:flex; align-items:center;" title="Preview Dokumen" onclick="event.stopPropagation(); openPdfPreview(\'' + doc.file + '\', \'' + doc.name + '\')">' +
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>' +
+                            '</button>' : '') +
+                            '<button style="padding:0.35rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); background:white; cursor:pointer; color:var(--text-secondary); display:flex; align-items:center;" title="Muat Turun" onclick="event.stopPropagation(); window.open(\'' + doc.file + '\', \'_blank\')">' +
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
+                            '</button>' +
+                        '</div>' +
+                    '</td>';
+
+                tbody.appendChild(tr);
+            });
+
+            var titleEl = document.getElementById('doc-list-title');
+            if (filter === 'all') {
+                titleEl.textContent = 'Semua Dokumen (' + filtered.length + ')';
+            } else {
+                var catName = filtered.length > 0 ? filtered[0].catLabel : filter;
+                titleEl.textContent = catName + ' (' + filtered.length + ')';
+            }
+        }
+
+        // Saiz disimpan sebagai teks ("1.8 MB", "44 KB") — tukar ke bait untuk disusun
+        function saizBait(s) {
+            var m = /([\d.]+)\s*(B|KB|MB|GB)\b/i.exec(s || '');
+            if (!m) return 0;
+            return parseFloat(m[1]) * { B: 1, KB: 1024, MB: 1048576, GB: 1073741824 }[m[2].toUpperCase()];
+        }
+
+        function susunDokumen(list, susun) {
+            return list.slice().sort(function(a, b) {
+                if (susun === 'nama') return a.name.localeCompare(b.name, 'ms', { sensitivity: 'base' });
+                if (susun === 'saiz') return saizBait(b.size) - saizBait(a.size);
+                // Terbaru: ikut masa dimuat naik, bukan lajur Tarikh — lajur itu
+                // tarikh versi dokumen dan formatnya tidak seragam ("2023", "20 Sep 2023").
+                return (b.uploaded_at || '').localeCompare(a.uploaded_at || '') || (b.id - a.id);
+            });
+        }
+
+        function filterByCategory(cat) {
+            renderDocs(cat);
+            document.getElementById('doc-list-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // =============================================
+        // PREVIEW MODAL
+        // =============================================
+        function openPreview(doc) {
+            document.getElementById('preview-title').textContent = doc.name;
+            document.getElementById('preview-filename').textContent = doc.name + '.' + doc.type;
+            document.getElementById('preview-meta').textContent = doc.date + ' \u2022 ' + doc.size;
+            document.getElementById('preview-category').textContent = doc.catLabel;
+            document.getElementById('preview-version').textContent = doc.version;
+            document.getElementById('preview-uploader').textContent = doc.uploader;
+            document.getElementById('preview-size').textContent = doc.size;
+
+            var iconEl = document.getElementById('preview-icon');
+            var color = fileColors[doc.type] || '#666';
+            iconEl.textContent = doc.type.toUpperCase();
+            iconEl.style.background = color + '15';
+            iconEl.style.color = color;
+
+            var descSection = document.getElementById('preview-desc-section');
+            if (doc.desc) {
+                descSection.style.display = 'block';
+                document.getElementById('preview-desc').textContent = doc.desc;
+            } else {
+                descSection.style.display = 'none';
+            }
+
+            var viewBtn = document.getElementById('preview-view-btn');
+            if (doc.type.toLowerCase() === 'pdf') {
+                viewBtn.style.display = 'flex';
+                viewBtn.onclick = function() { openPdfPreview(doc.file, doc.name); };
+            } else {
+                viewBtn.style.display = 'none';
+            }
+
+            document.getElementById('preview-download-btn').onclick = function() {
+                window.open(doc.file, '_blank');
+            };
+
+            document.getElementById('doc-preview-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            document.getElementById('doc-preview-modal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('doc-preview-modal').addEventListener('click', function(e) {
+            if (e.target === this) closePreview();
+        });
+
+        // =============================================
+        // PDF VIEWER
+        // =============================================
+        function openPdfPreview(url, title) {
+            document.getElementById('pdf-viewer-title').textContent = title || 'Preview Dokumen';
+            document.getElementById('pdf-viewer-iframe').src = url;
+            document.getElementById('pdf-viewer-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePdfPreview() {
+            document.getElementById('pdf-viewer-modal').classList.remove('active');
+            document.getElementById('pdf-viewer-iframe').src = '';
+            if (!document.getElementById('doc-preview-modal').classList.contains('active')) {
+                document.body.style.overflow = '';
+            }
+        }
+
+        document.getElementById('pdf-viewer-modal').addEventListener('click', function(e) {
+            if (e.target === this) closePdfPreview();
+        });
+
+        // =============================================
+        // UPLOAD FORM
+        // =============================================
+        function openUploadForm() {
+            document.getElementById('upload-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeUploadForm() {
+            document.getElementById('upload-modal').classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('upload-form').reset();
+            document.getElementById('dropzone-text').textContent = 'Klik untuk pilih fail atau seret & lepas';
+        }
+
+        document.getElementById('upload-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeUploadForm();
+        });
+
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                document.getElementById('dropzone-text').textContent = '\u2705 ' + input.files[0].name;
+            }
+        }
+
+        function submitUpload(e) {
+            e.preventDefault();
+            var name = document.getElementById('doc-name').value.trim();
+            var category = document.getElementById('doc-category').value;
+            var version = document.getElementById('doc-version').value.trim() || '\u2014';
+            var desc = document.getElementById('doc-desc').value.trim();
+            var fileInput = document.getElementById('doc-file');
+
+            var catLabels = {
+                'sop-klinikal': 'SOP Klinikal', 'sop-bukan-klinikal': 'SOP Bukan Klinikal',
+                'pekeliling': 'Pekeliling KKM', 'polisi': 'Polisi & Garis Panduan',
+                'borang': 'Borang & Templat', 'lain': 'Lain-lain'
+            };
+
+            var type = 'pdf';
+            var size = '— KB';
+            if (fileInput.files && fileInput.files[0]) {
+                var fname = fileInput.files[0].name;
+                type = fname.split('.').pop().toLowerCase();
+                var bytes = fileInput.files[0].size;
+                size = bytes > 1048576 ? (bytes / 1048576).toFixed(1) + ' MB' : (bytes / 1024).toFixed(0) + ' KB';
+            }
+
+            var now = new Date();
+            var months = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
+            var dateStr = now.getDate().toString().padStart(2, '0') + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+
+            var authorName = localStorage.getItem('user_name') || 'Pengguna';
+            function tc(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
+
+            docsData.unshift({
+                id: docsData.length + 1, name: name, category: category,
+                catLabel: catLabels[category] || category, version: version,
+                date: dateStr, size: size, type: type, uploader: tc(authorName.split(' ')[0]), desc: desc
+            });
+
+            renderDocs(currentFilter);
+            closeUploadForm();
+        }
+
+        // =============================================
+        // SEARCH
+        // =============================================
+        // Dua kotak carian (atas halaman dan di sebelah senarai) sentiasa sama isinya
+        ['search-docs', 'search-docs-list'].forEach(function(id, i, ids) {
+            document.getElementById(id).addEventListener('input', function() {
+                document.getElementById(ids[1 - i]).value = this.value;
+                renderDocs(currentFilter);
+                renderMemo();
+            });
+        });
+
+        // =============================================
+        // MEMO
+        // =============================================
+        // Fail memo dibuka melalui api/memo-buka.php, yang merekod staf yang
+        // membuka memo dalam Log Audit (tiada pengesahan "sudah baca").
+        var memoData = [];
+        var memoSemua = false;
+        var MEMO_PAPAR_AWAL = 5;
+        var MEMO_BOLEH_PAPAR = ['pdf', 'jpg', 'jpeg', 'png'];
+
+        function memoEsc(s) {
+            var d = document.createElement('div');
+            d.textContent = s == null ? '' : String(s);
+            return d.innerHTML;
+        }
+        function memoTarikh(ymd) { var p = ymd.split('-'); return p[2] + '.' + p[1] + '.' + p[0]; }
+
+        function loadMemoData() {
+            fetch('api/memo.php')
+                .then(function(r) { return r.json(); })
+                .then(function(res) { memoData = res.data || []; renderMemo(); })
+                .catch(function(err) { console.error('Gagal ambil memo:', err); });
+        }
+
+        function renderMemo() {
+            var bahagian = document.getElementById('memo-bahagian');
+            bahagian.hidden = memoData.length === 0;
+            if (!memoData.length) return;
+
+            var q = (document.getElementById('search-docs').value || '').toLowerCase().trim();
+            var list = q ? memoData.filter(function(m) {
+                return [m.tajuk, m.no_rujukan, m.daripada, m.jenis, m.keterangan].join(' ').toLowerCase().indexOf(q) > -1;
+            }) : memoData;
+            var tunjuk = (q || memoSemua) ? list : list.slice(0, MEMO_PAPAR_AWAL);
+            document.getElementById('memo-bil').textContent = '(' + (q ? list.length + ' daripada ' : '') + memoData.length + ')';
+
+            var baharuSejak = Date.now() - 14 * 86400000; // dimuat naik dalam 14 hari terakhir
+            var ikonMata = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+            var ikonTurun = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>';
+            var gayaButang = 'padding:0.35rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); background:white; cursor:pointer; color:var(--text-secondary); display:flex; align-items:center;';
+
+            document.getElementById('memo-senarai').innerHTML = tunjuk.length ? tunjuk.map(function(m) {
+                var baharu = new Date(m.dicipta_pada.replace(' ', 'T')).getTime() >= baharuSejak;
+                var meta = ['Tarikh: ' + memoTarikh(m.tarikh_surat), m.no_rujukan ? 'No. Rujukan: ' + m.no_rujukan : '', m.daripada ? 'Daripada: ' + m.daripada : '']
+                    .filter(Boolean).map(memoEsc).join(' &middot; ');
+                return '<div style="display:flex; gap:0.85rem; align-items:flex-start; padding:0.85rem 1.25rem; border-bottom:1px solid var(--border-color); cursor:pointer;" onclick="memoBuka(' + m.id + ')" onmouseover="this.style.background=\'#f8faff\'" onmouseout="this.style.background=\'\'">' +
+                    getFileIcon(m.fail_jenis) +
+                    '<div style="flex:1; min-width:0;">' +
+                        '<div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">' +
+                            '<span style="font-size:0.7rem; font-weight:700; padding:0.1rem 0.45rem; border-radius:4px; background:var(--bg-light); color:var(--text-secondary);">' + memoEsc(m.jenis) + '</span>' +
+                            (baharu ? '<span style="font-size:0.68rem; font-weight:700; padding:0.1rem 0.45rem; border-radius:4px; background:#dcfce7; color:#166534;">BAHARU</span>' : '') +
+                        '</div>' +
+                        '<p style="font-size:0.88rem; font-weight:600; color:var(--text-primary); margin:0.25rem 0 0.15rem;">' + memoEsc(m.tajuk) + '</p>' +
+                        '<p style="font-size:0.74rem; color:var(--text-light);">' + meta + '</p>' +
+                        (m.keterangan ? '<p style="font-size:0.78rem; color:var(--text-secondary); margin-top:0.3rem;">' + memoEsc(m.keterangan) + '</p>' : '') +
+                    '</div>' +
+                    '<div style="display:flex; gap:0.4rem; flex-shrink:0;">' +
+                        (MEMO_BOLEH_PAPAR.indexOf(m.fail_jenis) !== -1 ? '<button style="' + gayaButang + '" title="Baca memo" onclick="event.stopPropagation(); memoBuka(' + m.id + ')">' + ikonMata + '</button>' : '') +
+                        '<button style="' + gayaButang + '" title="Muat turun (' + memoEsc(m.saiz) + ')" onclick="event.stopPropagation(); memoMuatTurun(' + m.id + ')">' + ikonTurun + '</button>' +
+                    '</div></div>';
+            }).join('') : '<div style="padding:1rem 1.25rem; font-size:0.82rem; color:var(--text-light);">Tiada memo sepadan dengan carian.</div>';
+
+            var lagi = document.getElementById('memo-lagi');
+            lagi.hidden = !!q || list.length <= MEMO_PAPAR_AWAL;
+            lagi.innerHTML = '<button onclick="memoSemua = !memoSemua; renderMemo();" style="border:none; background:none; color:var(--blue); font-weight:600; font-size:0.8rem; cursor:pointer; font-family:inherit;">' +
+                (memoSemua ? 'Tunjuk ' + MEMO_PAPAR_AWAL + ' memo terkini sahaja' : 'Lihat semua memo (' + list.length + ')') + '</button>';
+        }
+
+        // PDF dan gambar dibaca terus dalam paparan; Word dimuat turun
+        function memoBuka(id) {
+            var m = memoData.filter(function(x) { return +x.id === +id; })[0];
+            if (!m) return;
+            if (MEMO_BOLEH_PAPAR.indexOf(m.fail_jenis) !== -1) openPdfPreview('api/memo-buka.php?id=' + m.id, m.tajuk);
+            else memoMuatTurun(m.id);
+        }
+        function memoMuatTurun(id) {
+            window.open('api/memo-buka.php?id=' + id + '&muat_turun=1', '_blank');
+        }
+
+        document.getElementById('sort-docs').addEventListener('change', function() {
+            renderDocs(currentFilter);
+        });
+
+        // =============================================
+        // ESC KEY
+        // =============================================
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { closePreview(); closeUploadForm(); closePdfPreview(); }
+        });
+
+        // =============================================
+        // INIT
+        // =============================================
+        // Navbar Scroll Effect
+        window.addEventListener('scroll', function() {
+            var header = document.querySelector('.kkm-header-overlay');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Initialize User Data
+        (function() {
+            if (localStorage.getItem('user_authenticated') !== 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            var userName = localStorage.getItem('user_name') || 'Pengguna';
+            var userPicture = localStorage.getItem('user_picture') || '';
+            var headerName = document.getElementById('header-name');
+            var headerAvatar = document.getElementById('header-avatar');
+
+            function titleCase(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
+
+            if (headerName) headerName.textContent = titleCase(userName.split(' ')[0]);
+            if (headerAvatar && userPicture) {
+                headerAvatar.innerHTML = '<img src="' + userPicture + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+            } else if (headerAvatar) {
+                headerAvatar.textContent = userName.split(' ').map(function(n){return n[0];}).join('').substring(0,2).toUpperCase();
+            }
+
+            window.handleLogout = function() {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            };
+
+            // Show loading state
+            var tbody = document.getElementById('doc-table-body');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:3rem; color:var(--text-light);">Memuatkan dokumen...</td></tr>';
+            
+            loadDokumenData(true);
+            loadMemoData();
+            setInterval(function() {
+                if (document.visibilityState === 'visible') loadMemoData();
+            }, 60000);
+
+            // Background auto-refresh (keeps the list live without a manual reload)
+            setInterval(function() {
+                if (document.visibilityState === 'visible' && !document.querySelector('.modal-overlay.active')) {
+                    loadDokumenData(false);
+                }
+            }, 7000);
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible' && !document.querySelector('.modal-overlay.active')) {
+                    loadDokumenData(false);
+                }
+            });
+        })();
+
+        // Fetch from API
+        function loadDokumenData(isInitialLoad) {
+            fetch('api/dokumen.php')
+                .then(r => r.json())
+                .then(function(res) {
+                    docsData = res;
+                    renderDocs(currentFilter);
+                })
+                .catch(function(err) {
+                    console.error("Gagal ambil data dokumen:", err);
+                    if (isInitialLoad) {
+                        document.getElementById('doc-table-body').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:3rem; color:red;">Gagal memuatkan dokumen. Sila pastikan MySQL sudah running dan data telah di-seed.</td></tr>';
+                    }
+                });
+        }
+    </script>
+
+<script>
+        // --- Profile Dropdown & Dark Mode Logic ---
+        function toggleProfileDropdown(e) {
+            e.stopPropagation();
+            var dropdown = document.getElementById('profileDropdown');
+            if (dropdown) dropdown.classList.toggle('show');
+        }
+        window.onclick = function(event) {
+            if (!event.target.closest('.profile-dropdown-btn')) {
+                var dropdowns = document.getElementsByClassName("profile-dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        // =============================================
+        // THEME (Cerah / Gelap / Sistem)
+        // =============================================
+        function isNightTime() {
+            // Sistem: 6 pagi - 6 petang = cerah, selain itu = gelap
+            var hour = new Date().getHours();
+            return hour < 6 || hour >= 18;
+        }
+        function applyTheme(pref) {
+            var isDark = pref === 'dark' || (pref === 'system' && isNightTime());
+            document.body.classList.toggle('dark-mode', isDark);
+            document.querySelectorAll('.theme-option').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-theme') === pref);
+            });
+        }
+        function setThemePreference(pref) {
+            localStorage.setItem('theme_pref', pref);
+            applyTheme(pref);
+        }
+        (function() {
+            var pref = localStorage.getItem('theme_pref');
+            if (!pref) {
+                pref = localStorage.getItem('dark_mode') === 'true' ? 'dark' : 'system';
+            }
+            applyTheme(pref);
+            setInterval(function() {
+                if ((localStorage.getItem('theme_pref') || 'system') === 'system') applyTheme('system');
+            }, 5 * 60 * 1000);
+        })();
+
+        // Initialize logic on load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (['super_admin', 'admin', 'ketua_unit'].includes(localStorage.getItem('user_role'))) {
+                var adminLink = document.getElementById('admin-panel-link');
+                if (adminLink) adminLink.style.display = 'flex';
+            }
+        });
+</script>
+<script>
+    (function loadFooterPautanLuaran() {
+        var list = document.getElementById('footer-luaran-list');
+        if (!list) return;
+        function esc(s) {
+            var d = document.createElement('div');
+            d.textContent = s == null ? '' : s;
+            return d.innerHTML;
+        }
+        fetch('api/pautan.php?type=pautan_luaran')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var items = data.data || [];
+                list.innerHTML = items.map(function(p) {
+                    var external = /^https?:\/\//i.test(p.url);
+                    return '<li><a href="' + esc(p.url) + '"' + (external ? ' target="_blank"' : '') + '>' + esc(p.title) + '</a></li>';
+                }).join('');
+            })
+            .catch(function(err) { console.error('Pautan Luaran load error:', err); });
+    })();
+</script>
+
+</body>
+</html>
+
+

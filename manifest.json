@@ -1,0 +1,21 @@
+{
+  "name": "Intranet Hospital Serian",
+  "short_name": "Intranet HSER",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e3a8a",
+  "description": "Sistem Intranet Dalaman Hospital Serian, KKM.",
+  "icons": [
+    {
+      "src": "images/logo kkm.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "images/logo kkm.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

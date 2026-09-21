@@ -1,0 +1,818 @@
+<?php require_once __DIR__ . '/api/ip_guard.php'; ?>
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/logo kkm.png" type="image/png">
+    <title>Direktori — Intranet Hospital Serian</title>
+    <meta name="description" content="Direktori kakitangan dan nombor telefon Hospital Serian.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/custom.css?v=27">
+    <style>
+        /* Direktori-specific styles */
+        .dir-tabs {
+            display: flex;
+            gap: 0;
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 4px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            width: fit-content;
+            margin-bottom: 1.5rem;
+        }
+        .dir-tab {
+            padding: 0.65rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: inherit;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .dir-tab:hover { color: var(--blue); }
+        .dir-tab.active {
+            background: var(--blue);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,80,143,0.3);
+        }
+        .dir-tab svg { width: 16px; height: 16px; }
+
+        .dir-panel { display: none; }
+        .dir-panel.active { display: block; }
+
+        /* Phone directory grid layout */
+        #phone-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .phone-section {
+            background: transparent;
+        }
+        
+        .phone-section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .phone-section-icon {
+            width: 42px; height: 42px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px -2px rgba(0,0,0,0.15);
+        }
+        .phone-section-icon svg { width: 20px; height: 20px; color: white; }
+        .phone-section-title-wrap {
+            display: flex;
+            flex-direction: column;
+        }
+        .phone-section-name {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+        .phone-section-count {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .phone-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+
+        .phone-mini-card {
+            background: white;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .phone-mini-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--blue);
+            opacity: 0.5;
+            transition: opacity 0.25s;
+        }
+
+        .phone-mini-card:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 20px -8px rgba(0,0,0,0.15);
+            border-color: transparent;
+        }
+        .phone-mini-card:hover::before { opacity: 1; }
+
+        .phone-mini-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+        
+        .phone-mini-ext-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: auto;
+        }
+        
+        .phone-mini-ext-wrap svg {
+            width: 14px; height: 14px;
+            color: var(--text-light);
+        }
+
+        .phone-mini-ext {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--blue);
+            letter-spacing: 0.5px;
+        }
+
+        /* Staff card grid */
+        .staff-summary {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .staff-summary strong { color: var(--blue); font-weight: 800; font-size: 1.1rem; }
+
+        #staff-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .staff-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            padding: 1.25rem;
+            display: flex;
+            gap: 1rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .staff-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--blue), #00a8ff);
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+        .staff-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -8px rgba(0,0,0,0.12);
+        }
+        .staff-card:hover::after { opacity: 1; }
+
+        .staff-avatar {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00508F, #0078d4);
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            letter-spacing: 1px;
+        }
+
+        .staff-info { flex: 1; min-width: 0; }
+        .staff-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.3;
+            margin-bottom: 0.35rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .staff-jawatan {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+            line-height: 1.3;
+        }
+        .staff-meta {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .staff-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .staff-badge.gred {
+            background: rgba(0,80,143,0.1);
+            color: var(--blue);
+        }
+        .staff-badge.dept {
+            background: rgba(39,174,96,0.1);
+            color: #27AE60;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .page-btn:hover { background: var(--bg-light); border-color: var(--blue); color: var(--blue); }
+        .page-btn.active {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+            box-shadow: 0 2px 6px rgba(0,80,143,0.3);
+        }
+        .page-btn.nav-btn { width: auto; padding: 0 0.75rem; }
+        .page-dots { padding: 0 0.25rem; color: var(--text-light); font-size: 0.85rem; }
+
+        /* Search */
+        .dir-search {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 0.6rem 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: border-color 0.2s ease;
+        }
+        .dir-search:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,80,143,0.08); }
+        .dir-search svg { width: 18px; height: 18px; color: var(--text-light); flex-shrink: 0; }
+        .dir-search input {
+            border: none; outline: none; width: 100%;
+            font-size: 0.85rem; font-family: inherit;
+            color: var(--text-primary);
+            background: transparent;
+        }
+        .dir-search input::placeholder { color: var(--text-light); }
+    </style>
+</head>
+<body>
+
+    <!-- KKM OVERLAY HEADER -->
+    <header class="kkm-header-overlay">
+        <!-- UTILITY BAR (Gaya KKM - Top Bar) -->
+        <div class="utility-bar">
+            <div class="container">
+                <div class="utility-brand">
+                    <img src="images/logo kkm.png" alt="Logo KKM">
+                    <div class="utility-brand-text">
+                        <h1>PORTAL RASMI INTRANET</h1>
+                        <span>HOSPITAL SERIAN, KEMENTERIAN KESIHATAN MALAYSIA</span>
+                    </div>
+                </div>
+                                <div class="utility-actions">
+                    <div class="profile-dropdown">
+                        <div class="profile-dropdown-btn" onclick="toggleProfileDropdown(event)">
+                            <div class="utility-user-avatar" id="header-avatar">?</div>
+                            <div class="utility-user-name" id="header-name">Memuatkan...</div>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 2px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        
+                        <div class="profile-dropdown-content" id="profileDropdown">
+                            <div class="dropdown-item" id="admin-panel-link" style="display: none;" onclick="window.location.href='admin.html'">
+                                ⚙️ Pentadbir
+                            </div>
+                            <div class="dropdown-item theme-picker-item" onclick="event.stopPropagation();">
+                                <span class="theme-picker-label">Tema Paparan</span>
+                                <div class="theme-picker">
+                                    <button type="button" class="theme-option" data-theme="light" onclick="setThemePreference('light')" title="Mod Cerah">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                        Cerah
+                                    </button>
+                                    <button type="button" class="theme-option" data-theme="dark" onclick="setThemePreference('dark')" title="Mod Gelap">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                        Gelap
+                                    </button>
+                                    <button type="button" class="theme-option" data-theme="system" onclick="setThemePreference('system')" title="Ikut Sistem">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                                        Sistem
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="dropdown-item" onclick="handleLogout()" style="color: var(--red);">
+                                🔓 Log Keluar
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN NAV (Gaya KKM - Slim Bar) -->
+        <nav class="main-nav">
+            <div class="container" style="justify-content: center;">
+                <ul class="nav-menu" id="nav-menu">
+                    <li><a href="dashboard.html">Laman Utama</a></li>
+                    <li><a href="dokumen.html">Pusat Dokumen</a></li>
+                    <li><a href="borang-hr.html">Borang Rasmi</a></li>
+                    <li><a href="berita.html">Berita &amp; Pengumuman</a></li>
+                    <li><a href="direktori.html" class="active">Direktori</a></li>
+                    <li><a href="tempahan-bilik.html">Tempahan Bilik</a></li>
+                </ul>
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle" title="Menu" style="position: absolute; right: 20px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header page-header-berita">
+        <h1>Direktori</h1>
+        <p>Direktori kakitangan &amp; nombor telefon sambungan Hospital Serian</p>
+    </div>
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="dashboard.html">Laman Utama</a> &rsaquo; <span>Direktori</span>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="page-content">
+
+        <!-- Search -->
+        <div class="dir-search" id="dir-search">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="search-dir" placeholder="Cari nama, jabatan atau nombor telefon...">
+        </div>
+
+        <!-- Tabs -->
+        <div class="dir-tabs">
+            <button class="dir-tab active" data-tab="kakitangan" onclick="switchTab('kakitangan')">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                Kakitangan
+            </button>
+            <button class="dir-tab" data-tab="telefon" onclick="switchTab('telefon')">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                Nombor Telefon
+            </button>
+        </div>
+
+        <!-- PANEL: Kakitangan -->
+        <div class="dir-panel active" id="panel-kakitangan">
+            <div class="staff-summary" id="staff-summary"></div>
+            <div id="staff-grid"></div>
+            <div class="pagination" id="staff-pagination"></div>
+        </div>
+
+        <!-- PANEL: Telefon -->
+        <div class="dir-panel" id="panel-telefon">
+            <p style="font-size:0.75rem; color:var(--text-light); margin-bottom:1rem; font-style:italic;">
+                📋 Senarai Nombor Sambungan &amp; Talian Terus Hospital Serian — Kemaskini Jun 2026
+            </p>
+            <div id="phone-list"></div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="gov-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col-main">
+                    <img src="images/logo kkm.png" alt="Logo KKM" class="footer-logo" style="width:120px; height:auto;">
+                    <div class="footer-address">
+                        <strong>HOSPITAL SERIAN</strong><br>
+                        Bandar Serian, 94700 Serian,<br>
+                        Sarawak.<br><br>
+                        <strong>Tel:</strong> 082-874 311<br>
+                        <strong>Faks:</strong> 082-874 311
+                    </div>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Pautan Utama</h4>
+                    <ul class="footer-links">
+                        <li><a href="dashboard.html">Laman Utama</a></li>
+                        <li><a href="dokumen.html">Pusat Dokumen &amp; SOP</a></li>
+                        <li><a href="borang-hr.html">Borang Rasmi</a></li>
+                        <li><a href="berita.html">Berita &amp; Pengumuman</a></li>
+                        <li><a href="direktori.html">Direktori</a></li>
+                        <li><a href="tempahan-bilik.html">Tempahan Bilik</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Pautan Luaran</h4>
+                    <ul class="footer-links" id="footer-luaran-list"></ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    &copy; 2026 Hospital Serian, Kementerian Kesihatan Malaysia. Hak Cipta Terpelihara.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Data globals
+        var staffData = [];
+        var phoneData = [];
+
+        // =============================================
+        // RENDER PHONE DIRECTORY
+        // =============================================
+        function renderPhoneDir(searchVal) {
+            var container = document.getElementById('phone-list');
+            container.innerHTML = '';
+            var sv = (searchVal || '').toLowerCase();
+
+            phoneData.forEach(function(group) {
+                var filteredItems = group.items;
+                if (sv) {
+                    filteredItems = group.items.filter(function(item) {
+                        return item.name.toLowerCase().indexOf(sv) > -1 ||
+                               item.ext.toLowerCase().indexOf(sv) > -1 ||
+                               group.group.toLowerCase().indexOf(sv) > -1;
+                    });
+                }
+                if (filteredItems.length === 0) return;
+
+                var div = document.createElement('div');
+                div.className = 'phone-section';
+                
+                var headerHtml =
+                    '<div class="phone-section-header" style="border-bottom-color: ' + group.color + '40;">' +
+                        '<div class="phone-section-icon" style="background: linear-gradient(135deg, ' + group.color + 'dd, ' + group.color + ');">' + group.icon + '</div>' +
+                        '<div class="phone-section-title-wrap">' +
+                            '<span class="phone-section-name" style="color: ' + group.color + ';">' + group.group + '</span>' +
+                            '<span class="phone-section-count">' + filteredItems.length + ' talian / sambungan</span>' +
+                        '</div>' +
+                    '</div>';
+
+                var bodyHtml = '<div class="phone-grid">';
+                filteredItems.forEach(function(item) {
+                    bodyHtml += '<div class="phone-mini-card" style="--blue: ' + group.color + ';">' +
+                        '<div class="phone-mini-name">' + item.name + '</div>' +
+                        '<div class="phone-mini-ext-wrap">' +
+                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>' +
+                            '<span class="phone-mini-ext">' + item.ext + '</span>' +
+                        '</div>' +
+                    '</div>';
+                });
+                bodyHtml += '</div>';
+
+                div.innerHTML = headerHtml + bodyHtml;
+                container.appendChild(div);
+            });
+
+            if (container.innerHTML === '') {
+                container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-light); font-size:0.85rem;">Tiada keputusan dijumpai untuk "' + sv + '"</div>';
+            }
+        }
+
+        // =============================================
+        // RENDER STAFF DIRECTORY
+        // =============================================
+        var staffPage = 1;
+        var staffPerPage = 24;
+
+        function renderStaff(searchVal, page) {
+            page = page || 1;
+            staffPage = page;
+            var sv = (searchVal || '').toLowerCase();
+            var filtered = staffData;
+            if (sv) {
+                filtered = staffData.filter(function(s) {
+                    var n = s.nama || s.nama_penuh || '';
+                    var j = s.jawatan || s.jawatan_sspa || '';
+                    var g = s.gred || s.gred_sspa || '';
+                    var p = s.penempatan || '';
+                    var tp = s.no_telefon || '';
+                    return n.toLowerCase().indexOf(sv) > -1 ||
+                           j.toLowerCase().indexOf(sv) > -1 ||
+                           g.toLowerCase().indexOf(sv) > -1 ||
+                           tp.toLowerCase().indexOf(sv) > -1 ||
+                           p.toLowerCase().indexOf(sv) > -1;
+                });
+            }
+
+            var totalPages = Math.ceil(filtered.length / staffPerPage);
+            if (page > totalPages) page = totalPages || 1;
+            var start = (page - 1) * staffPerPage;
+            var end = start + staffPerPage;
+            var pageItems = filtered.slice(start, end);
+
+            // Summary
+            var summary = document.getElementById('staff-summary');
+            if (sv) {
+                summary.innerHTML = '🔍 Menunjukkan <strong>' + filtered.length + '</strong> daripada ' + staffData.length + ' kakitangan';
+            } else {
+                summary.innerHTML = '👥 Jumlah Kakitangan: <strong>' + staffData.length + '</strong> orang';
+            }
+
+            // Cards
+            var grid = document.getElementById('staff-grid');
+            grid.innerHTML = '';
+            if (pageItems.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-light);font-size:0.85rem;">Tiada kakitangan dijumpai untuk "' + sv + '"</div>';
+            } else {
+                pageItems.forEach(function(s) {
+                    var nama = s.nama || s.nama_penuh || 'Tiada Nama';
+                    var jawatan = s.jawatan || s.jawatan_sspa || '-';
+                    var gred = s.gred || s.gred_sspa || '-';
+                    var penempatan = s.penempatan || '-';
+                    var emel = s.emel_rasmi && s.emel_rasmi !== '-' ? s.emel_rasmi : 'Tiada';
+
+                    var initials = nama.split(' ').map(function(w){return w[0];}).join('').substring(0,2);
+                    var colors = ['#00508F','#E74C3C','#27AE60','#9C27B0','#FF9800','#607D8B','#E91E63','#0C7B93','#673AB7','#00BCD4'];
+                    var bgColor = colors[(s.bil || 1) % colors.length];
+                    var html = '<div class="staff-card">' +
+                        '<div class="staff-avatar" style="background:linear-gradient(135deg,' + bgColor + 'cc,' + bgColor + ');">' + initials + '</div>' +
+                        '<div class="staff-info">' +
+                            '<div class="staff-name" title="' + nama + '">' + nama + '</div>' +
+                            '<div class="staff-jawatan">' + jawatan + '</div>' +
+                            '<div class="staff-meta" style="margin-bottom:0.5rem;">' +
+                                '<span class="staff-badge gred">' + gred + '</span>' +
+                                '<span class="staff-badge dept">' + penempatan + '</span>' +
+                            '</div>' +
+                            '<div style="font-size:0.75rem; color:var(--text-secondary); margin-top:0.4rem; padding-top:0.4rem; border-top:1px dashed var(--border-color); display:flex; flex-direction:column; gap:0.2rem;">' +
+                                '<div style="display:flex; align-items:center; gap:0.35rem;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>' + emel + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+                    grid.innerHTML += html;
+                });
+            }
+
+            // Pagination
+            var pag = document.getElementById('staff-pagination');
+            pag.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            var prevBtn = '<button class="page-btn nav-btn" ' + (page <= 1 ? 'disabled style="opacity:0.4;cursor:default;"' : 'onclick="renderStaff(document.getElementById(\'search-dir\').value,' + (page-1) + ')"') + '>&laquo;</button>';
+            pag.innerHTML += prevBtn;
+
+            for (var i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
+                    pag.innerHTML += '<button class="page-btn' + (i === page ? ' active' : '') + '" onclick="renderStaff(document.getElementById(\'search-dir\').value,' + i + ')">' + i + '</button>';
+                } else if (i === page - 3 || i === page + 3) {
+                    pag.innerHTML += '<span class="page-dots">...</span>';
+                }
+            }
+
+            var nextBtn = '<button class="page-btn nav-btn" ' + (page >= totalPages ? 'disabled style="opacity:0.4;cursor:default;"' : 'onclick="renderStaff(document.getElementById(\'search-dir\').value,' + (page+1) + ')"') + '>&raquo;</button>';
+            pag.innerHTML += nextBtn;
+        }
+
+        // =============================================
+        // TAB SWITCHING
+        // =============================================
+        function switchTab(tab) {
+            document.querySelectorAll('.dir-tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.dir-panel').forEach(function(p) { p.classList.remove('active'); });
+            document.querySelector('.dir-tab[data-tab="' + tab + '"]').classList.add('active');
+            document.getElementById('panel-' + tab).classList.add('active');
+
+            // Update search placeholder
+            var searchInput = document.getElementById('search-dir');
+            if (tab === 'kakitangan') {
+                searchInput.placeholder = 'Cari nama kakitangan...';
+            } else {
+                searchInput.placeholder = 'Cari jabatan atau nombor telefon...';
+            }
+        }
+
+        // =============================================
+        // SEARCH
+        // =============================================
+        document.getElementById('search-dir').addEventListener('input', function() {
+            var activeTab = document.querySelector('.dir-tab.active').getAttribute('data-tab');
+            if (activeTab === 'telefon') {
+                renderPhoneDir(this.value);
+            } else {
+                renderStaff(this.value, 1);
+            }
+        });
+
+        // =============================================
+        // MOBILE NAV
+        // =============================================
+        document.getElementById('mobile-nav-toggle').addEventListener('click', function() {
+            document.getElementById('nav-menu').classList.toggle('open');
+        });
+
+        // =============================================
+        // NAVBAR SCROLL EFFECT
+        // =============================================
+        window.addEventListener('scroll', function() {
+            var header = document.querySelector('.kkm-header-overlay');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // =============================================
+        // INIT & FETCH DATA
+        // =============================================
+        (function() {
+            if (localStorage.getItem('user_authenticated') !== 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
+            var userName = localStorage.getItem('user_name') || 'Pengguna';
+            var userPicture = localStorage.getItem('user_picture') || '';
+            var headerName = document.getElementById('header-name');
+            var headerAvatar = document.getElementById('header-avatar');
+            function titleCase(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
+            if (headerName) headerName.textContent = titleCase(userName.split(' ')[0]);
+            if (headerAvatar && userPicture) {
+                headerAvatar.innerHTML = '<img src="' + userPicture + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+            } else if (headerAvatar) {
+                headerAvatar.textContent = userName.split(' ').map(function(n){return n[0];}).join('').substring(0,2).toUpperCase();
+            }
+            window.handleLogout = function() { localStorage.clear(); window.location.href = 'index.html'; };
+            
+            // Show loading state
+            document.getElementById('staff-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-light);">Memuatkan data kakitangan...</div>';
+            document.getElementById('phone-list').innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-light);">Memuatkan data telefon...</div>';
+            
+            loadDirektoriData(true);
+
+            // Background auto-refresh (keeps the directory live without a manual reload)
+            setInterval(function() {
+                if (document.visibilityState === 'visible' && !document.querySelector('.modal-overlay.active')) {
+                    loadDirektoriData(false);
+                }
+            }, 7000);
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible' && !document.querySelector('.modal-overlay.active')) {
+                    loadDirektoriData(false);
+                }
+            });
+        })();
+
+        // Fetch from API
+        function loadDirektoriData(isInitialLoad) {
+            Promise.all([
+                fetch('api/staff.php').then(r => r.json()),
+                fetch('api/telefon.php').then(r => r.json())
+            ])
+            .then(function([staffRes, phoneRes]) {
+                staffData = staffRes;
+                phoneData = phoneRes;
+                var searchVal = document.getElementById('search-dir') ? document.getElementById('search-dir').value : '';
+                renderStaff(searchVal, staffPage);
+                renderPhoneDir(searchVal);
+            })
+            .catch(function(err) {
+                console.error("Gagal ambil data API:", err);
+                if (isInitialLoad) {
+                    document.getElementById('staff-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:red;">Gagal memuatkan data. Sila pastikan MySQL sudah running dan data telah di-seed.</div>';
+                    document.getElementById('phone-list').innerHTML = '<div style="text-align:center;padding:3rem;color:red;">Gagal memuatkan data telefon.</div>';
+                }
+            });
+        }
+    </script>
+
+<script>
+        // --- Profile Dropdown & Dark Mode Logic ---
+        function toggleProfileDropdown(e) {
+            e.stopPropagation();
+            var dropdown = document.getElementById('profileDropdown');
+            if (dropdown) dropdown.classList.toggle('show');
+        }
+        window.onclick = function(event) {
+            if (!event.target.closest('.profile-dropdown-btn')) {
+                var dropdowns = document.getElementsByClassName("profile-dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        // =============================================
+        // THEME (Cerah / Gelap / Sistem)
+        // =============================================
+        function isNightTime() {
+            // Sistem: 6 pagi - 6 petang = cerah, selain itu = gelap
+            var hour = new Date().getHours();
+            return hour < 6 || hour >= 18;
+        }
+        function applyTheme(pref) {
+            var isDark = pref === 'dark' || (pref === 'system' && isNightTime());
+            document.body.classList.toggle('dark-mode', isDark);
+            document.querySelectorAll('.theme-option').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-theme') === pref);
+            });
+        }
+        function setThemePreference(pref) {
+            localStorage.setItem('theme_pref', pref);
+            applyTheme(pref);
+        }
+        (function() {
+            var pref = localStorage.getItem('theme_pref');
+            if (!pref) {
+                pref = localStorage.getItem('dark_mode') === 'true' ? 'dark' : 'system';
+            }
+            applyTheme(pref);
+            // Re-check periodically so "Sistem" mode crosses the day/night boundary
+            // automatically while the page is left open
+            setInterval(function() {
+                if ((localStorage.getItem('theme_pref') || 'system') === 'system') applyTheme('system');
+            }, 5 * 60 * 1000);
+        })();
+
+        // Initialize logic on load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (['super_admin', 'admin', 'ketua_unit'].includes(localStorage.getItem('user_role'))) {
+                var adminLink = document.getElementById('admin-panel-link');
+                if (adminLink) adminLink.style.display = 'flex';
+            }
+        });
+</script>
+<script>
+    (function loadFooterPautanLuaran() {
+        var list = document.getElementById('footer-luaran-list');
+        if (!list) return;
+        function esc(s) {
+            var d = document.createElement('div');
+            d.textContent = s == null ? '' : s;
+            return d.innerHTML;
+        }
+        fetch('api/pautan.php?type=pautan_luaran')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var items = data.data || [];
+                list.innerHTML = items.map(function(p) {
+                    var external = /^https?:\/\//i.test(p.url);
+                    return '<li><a href="' + esc(p.url) + '"' + (external ? ' target="_blank"' : '') + '>' + esc(p.title) + '</a></li>';
+                }).join('');
+            })
+            .catch(function(err) { console.error('Pautan Luaran load error:', err); });
+    })();
+</script>
+
+</body>
+</html>
+
+

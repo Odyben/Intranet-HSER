@@ -1,0 +1,263 @@
+<?php require_once __DIR__ . '/api/ip_guard.php'; ?>
+<!DOCTYPE html>
+<html lang="ms">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/logo kkm.png" type="image/png">
+    <title>Log Masuk — Intranet Hospital Serian</title>
+    <meta name="description"
+        content="Sistem Intranet Dalaman Hospital Serian, KKM. Akses eksklusif untuk kakitangan hospital sahaja.">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/custom.css?v=27">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+
+    <!-- PWA Install Prompt -->
+    <div id="pwa-install-prompt" style="display: none; position: fixed; top: 0; left: 0; width: 100%; background: var(--navy-dark, #1e3a8a); color: white; padding: 15px; text-align: center; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap;">
+            <p style="margin: 0; font-size: 14px;">Adakah anda setuju untuk meletakkan sistem ini ke desktop anda untuk akses pantas?</p>
+            <div>
+                <button id="btn-pwa-install" style="background: #22c55e; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 8px;">Ya, Setuju</button>
+                <button id="btn-pwa-cancel" style="background: #ef4444; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         LOGIN PAGE — Background Image + Glass Card
+         ============================================ -->
+    <div class="login-bg-white">
+
+        <!-- Subtle decorative elements -->
+        <div class="login-decor-circle login-decor-1"></div>
+        <div class="login-decor-circle login-decor-2"></div>
+        <div class="login-decor-circle login-decor-3"></div>
+
+        <!-- Login Card (Glassmorphism) -->
+        <div class="glass-card-login-white">
+
+            <!-- KKM Logo -->
+            <div class="login-logo-img">
+                <img src="images/logo kkm.png" alt="Logo KKM - Kementerian Kesihatan Malaysia">
+            </div>
+
+            <!-- Title -->
+            <div class="text-center mb-6">
+                <h1 class="text-xl font-bold mb-1" style="color: var(--navy-dark);">Intranet Hospital Serian</h1>
+                <p class="text-sm" style="color: var(--text-secondary);">Sistem Dalaman Kakitangan</p>
+            </div>
+
+            <!-- ===== GOOGLE SIGN-IN BUTTON ===== -->
+            <div id="google-signin-section">
+                <button id="google-signin-btn" class="btn-google" onclick="handleGoogleLogin()">
+                    <svg width="20" height="20" viewBox="0 0 48 48">
+                        <path fill="#EA4335"
+                            d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                        <path fill="#4285F4"
+                            d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                        <path fill="#FBBC05"
+                            d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                        <path fill="#34A853"
+                            d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                    </svg>
+                    <span>Log Masuk dengan Google</span>
+                </button>
+
+                <!-- Status message area -->
+                <div id="login-status" class="login-status" style="display: none;"></div>
+            </div>
+
+            <!-- Email domain note -->
+            <div class="text-center mt-5">
+                <p class="text-xs" style="color: var(--text-light);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="inline-block mr-1" style="vertical-align: -2px;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    Hanya email rasmi KKM (@moh.gov.my) dibenarkan
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <p class="absolute bottom-6 text-center text-xs w-full" style="color: var(--text-secondary); z-index: 10;">
+            © 2026 Hospital Serian, Kementerian Kesihatan Malaysia
+        </p>
+
+    </div>
+
+    <!-- App JavaScript -->
+    <script src="js/app.js"></script>
+
+    <!-- Google OAuth Logic -->
+    <script>
+        // =============================================
+        // GOOGLE OAUTH CONFIG
+        // =============================================
+        // ⚠️ GANTI CLIENT_ID ni dengan Client ID dari Google Cloud Console
+        const GOOGLE_CLIENT_ID = '790007564350-mrlqp9rgfmuhhov3adbpe0fprgfs8s71.apps.googleusercontent.com';
+
+        // Domain email yang dibenarkan
+        const ALLOWED_DOMAIN = 'moh.gov.my';
+
+        // =============================================
+        // GOOGLE SIGN-IN HANDLER
+        // =============================================
+        function handleGoogleLogin() {
+            const client = google.accounts.oauth2.initTokenClient({
+                client_id: GOOGLE_CLIENT_ID,
+                scope: 'email profile',
+                callback: handleGoogleResponse,
+            });
+            client.requestAccessToken();
+        }
+
+        function handleGoogleResponse(response) {
+            if (response.error) {
+                showStatus('Gagal log masuk. Sila cuba lagi.', 'error');
+                return;
+            }
+
+            // Get user info from Google
+            fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { 'Authorization': 'Bearer ' + response.access_token }
+            })
+                .then(res => res.json())
+                .then(user => {
+                    console.log('Google User:', user);
+
+                    const email = user.email || '';
+                    const name = user.name || '';
+                    const picture = user.picture || '';
+                    const domain = email.split('@')[1];
+
+                    // Check domain
+                    if (domain === ALLOWED_DOMAIN || email === 'elvinharrizon@moh.gov.my') {
+                        // ✅ Email verified!
+                        showStatus('✅ Memuatkan profil...', 'success');
+
+                        // Call API to check/insert user and get role
+                        fetch('api/login.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: email, name: name })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.error) {
+                                showStatus('❌ Ralat: ' + data.error, 'error');
+                                return;
+                            }
+                            
+                            showStatus('✅ Berjaya! Selamat datang, ' + name, 'success');
+
+                            // Simpan user info
+                            localStorage.setItem('user_name', name);
+                            localStorage.setItem('user_email', email);
+                            localStorage.setItem('user_picture', picture);
+                            localStorage.setItem('user_authenticated', 'true');
+                            localStorage.setItem('user_role', data.role || 'staff');
+                            localStorage.setItem('user_modules', JSON.stringify(data.modules || []));
+
+                            // Redirect ke dashboard
+                            setTimeout(function () {
+                                window.location.href = 'dashboard.html';
+                            }, 1000);
+                        })
+                        .catch(err => {
+                            console.error('Login API Error:', err);
+                            showStatus('Ralat pelayan.', 'error');
+                        });
+
+                    } else {
+                        // ❌ Bukan email MOH
+                        showStatus('❌ Hanya email @moh.gov.my dibenarkan.', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    showStatus('Ralat mendapatkan maklumat pengguna.', 'error');
+                });
+        }
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('login-status');
+            statusEl.style.display = 'block';
+            statusEl.textContent = message;
+            statusEl.className = 'login-status ' + (type === 'success' ? 'status-success' : 'status-error');
+        }
+
+        // =============================================
+        // PWA INSTALLATION LOGIC
+        // =============================================
+        let deferredPrompt;
+        const pwaPrompt = document.getElementById('pwa-install-prompt');
+        const btnInstall = document.getElementById('btn-pwa-install');
+        const btnCancel = document.getElementById('btn-pwa-cancel');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Update UI to notify the user they can add to home screen
+            pwaPrompt.style.display = 'block';
+        });
+
+        btnInstall.addEventListener('click', async () => {
+            // Hide the app provided install promotion
+            pwaPrompt.style.display = 'none';
+            // Show the install prompt
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                // We've used the prompt, and can't use it again, throw it away
+                deferredPrompt = null;
+            }
+        });
+
+        btnCancel.addEventListener('click', () => {
+            pwaPrompt.style.display = 'none';
+        });
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    }, err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+
+</body>
+
+</html>

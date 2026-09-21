@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<title>Poster Hebahan Sistem Intranet Hospital Serian</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        font-family: Arial, "Segoe UI", sans-serif;
+        background: #eef1f5;
+        padding: 24px;
+    }
+
+    /* A4 potret pada 96dpi = 794 x 1123px */
+    .poster {
+        width: 794px;
+        min-height: 1123px;
+        margin: 0 auto;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #ccc;
+    }
+
+    .head {
+        background: #003366;
+        color: #fff;
+        padding: 18px 40px 16px;
+        text-align: center;
+        border-bottom: 7px solid #C9952E;
+    }
+    .head .kecil { font-size: 13px; letter-spacing: 3px; opacity: .85; }
+    .head h1 { font-size: 38px; line-height: 1.1; margin-top: 6px; letter-spacing: .5px; }
+    .head h2 { font-size: 18px; font-weight: normal; margin-top: 6px; opacity: .9; }
+
+    .isi { flex: 1; padding: 20px 40px 0; }
+
+    /* --- QR + URL --- */
+    .akses {
+        display: flex;
+        align-items: center;
+        gap: 26px;
+        border: 3px solid #003366;
+        border-radius: 10px;
+        padding: 20px 24px;
+    }
+    #qr { flex-shrink: 0; line-height: 0; }
+    #qr img, #qr canvas { display: block; width: 168px; height: 168px; }
+    .akses .kanan { flex: 1; }
+    .akses .label { font-size: 14px; font-weight: bold; color: #003366; letter-spacing: 1px; }
+    .akses .url {
+        font-size: 21px; font-weight: bold; color: #000;
+        word-break: break-all; line-height: 1.35; margin: 10px 0 12px;
+        padding: 10px 12px; background: #f3f6fa; border-left: 5px solid #C9952E;
+    }
+    .akses .nota { font-size: 14px; color: #333; line-height: 1.5; }
+
+    /* --- 3 langkah --- */
+    .tajuk-seksyen {
+        font-size: 17px; font-weight: bold; color: #003366;
+        margin: 17px 0 10px; padding-bottom: 6px; border-bottom: 2px solid #dfe4ea;
+        letter-spacing: .5px;
+    }
+    .langkah { display: flex; gap: 14px; }
+    .langkah .kotak {
+        flex: 1; border: 2px solid #dfe4ea; border-radius: 8px;
+        padding: 11px 12px; text-align: center;
+    }
+    .langkah .no {
+        width: 34px; height: 34px; line-height: 32px; margin: 0 auto 9px;
+        border: 2px solid #003366; border-radius: 50%;
+        font-size: 18px; font-weight: bold; color: #003366;
+    }
+    .langkah .t { font-size: 14px; font-weight: bold; margin-bottom: 5px; }
+    .langkah .d { font-size: 12.5px; color: #444; line-height: 1.45; }
+
+    /* --- Fungsi --- */
+    .fungsi { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .fungsi div {
+        border-left: 4px solid #C9952E; background: #faf7f0;
+        padding: 9px 14px; font-size: 14px;
+    }
+    .fungsi b { display: block; color: #003366; margin-bottom: 2px; font-size: 14.5px; }
+    .fungsi span { font-size: 12.5px; color: #444; }
+
+    /* --- Amaran --- */
+    .amaran {
+        margin-top: 16px; margin-bottom: 18px; border: 2px solid #000; border-radius: 8px;
+        padding: 14px 20px; background: #fff8e6;
+    }
+    /* Hanya tajuk kotak (anak terus) jadi block — <b> dalam senarai kekal inline */
+    .amaran > b { display: block; font-size: 15px; margin-bottom: 7px; }
+    .amaran ul { margin-left: 20px; }
+    .amaran li { font-size: 13.5px; line-height: 1.65; }
+
+    .kaki {
+        margin-top: auto; background: #003366; color: #fff;
+        padding: 13px 40px; text-align: center; font-size: 12.5px;
+    }
+
+    /* --- Cetak --- */
+    @page { size: A4 portrait; margin: 0; }
+    @media print {
+        body { background: #fff; padding: 0; }
+        /* Saiz A4 tepat + overflow:hidden = dijamin muat SATU muka surat,
+           tiada bar kaki yang tersasar ke muka surat kedua. */
+        .poster {
+            width: 210mm; height: 297mm; min-height: 0;
+            border: none; margin: 0; overflow: hidden;
+        }
+        .arahan { display: none; }
+        /* Pastikan warna latar tetap dicetak */
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+
+    .arahan {
+        max-width: 794px; margin: 0 auto 16px; padding: 12px 16px;
+        background: #fffbe6; border: 1px solid #e0c97f; border-radius: 8px;
+        font-size: 13.5px; color: #5a4a12; line-height: 1.6;
+    }
+</style>
+</head>
+<body>
+
+<div class="arahan">
+    <b>Cara cetak:</b> Tekan <b>Ctrl + P</b> → Saiz kertas <b>A4</b> → Margin <b>None/Tiada</b> →
+    tandakan <b>Background graphics</b> supaya warna keluar. Kotak kuning ini tidak akan tercetak.
+    <br><b>Sebelum cetak:</b> pastikan kod QR di bawah sudah muncul (perlukan internet sekali sahaja untuk jana).
+</div>
+
+<div class="poster">
+
+    <div class="head">
+        <div class="kecil">HOSPITAL SERIAN, KEMENTERIAN KESIHATAN MALAYSIA</div>
+        <h1>SISTEM INTRANET</h1>
+        <h2>Semua maklumat hospital dalam satu tempat</h2>
+    </div>
+
+    <div class="isi">
+
+        <div class="akses">
+            <div id="qr"></div>
+            <div class="kanan">
+                <div class="label">IMBAS KOD QR &nbsp;ATAU&nbsp; LAYARI:</div>
+                <div class="url">intranethser.duckdns.org/intranet hser/</div>
+                <div class="nota">
+                    Buka guna telefon atau komputer anda <b>semasa berada di dalam
+                    kawasan hospital</b>.
+                </div>
+            </div>
+        </div>
+
+        <div class="tajuk-seksyen">CARA MASUK DALAM 3 LANGKAH</div>
+        <div class="langkah">
+            <div class="kotak">
+                <div class="no">1</div>
+                <div class="t">Buka Alamat</div>
+                <div class="d">Imbas QR di atas, atau taip alamat tersebut dalam pelayar.</div>
+            </div>
+            <div class="kotak">
+                <div class="no">2</div>
+                <div class="t">Log Masuk Google</div>
+                <div class="d">Tekan butang <b>Log Masuk dengan Google</b> pada skrin.</div>
+            </div>
+            <div class="kotak">
+                <div class="no">3</div>
+                <div class="t">Pilih Emel MOH</div>
+                <div class="d">Guna emel rasmi <b>@moh.gov.my</b> anda. Selesai!</div>
+            </div>
+        </div>
+
+        <div class="tajuk-seksyen">APA YANG ANDA BOLEH BUAT</div>
+        <div class="fungsi">
+            <div><b>Tempahan Bilik</b><span>Tempah bilik mesyuarat dalam talian tanpa borang dan tanpa telefon.</span></div>
+            <div><b>Direktori Telefon</b><span>Semua nombor sambungan jabatan dalam satu senarai.</span></div>
+            <div><b>Pusat Dokumen &amp; SOP</b><span>Muat turun SOP, polisi &amp; garis panduan bila-bila masa.</span></div>
+            <div><b>Borang Rasmi KKM</b><span>Borang HR &amp; e-Borang, sedia untuk dimuat turun.</span></div>
+            <div><b>Berita &amp; Pengumuman</b><span>Hebahan terkini dan jadual aktiviti hospital.</span></div>
+            <div><b>Direktori Staf</b><span>Cari maklumat rakan sekerja mengikut unit.</span></div>
+        </div>
+
+        <div class="amaran">
+            <b>&#9888; SILA AMBIL PERHATIAN</b>
+            <ul>
+                <li>Sistem ini <b>hanya boleh dibuka dalam kawasan hospital</b> (WiFi / LAN hospital).
+                    Ia <b>tidak boleh</b> diakses dari rumah atau menggunakan data selular.</li>
+                <li>Log masuk <b>hanya menerima emel rasmi @moh.gov.my</b>. Emel peribadi
+                    (Gmail, Yahoo dan seumpamanya) tidak dibenarkan.</li>
+                <li><b>Belum ada emel @moh.gov.my?</b> Sila mohon melalui Unit ICT / Pentadbiran
+                    terlebih dahulu sebelum boleh menggunakan sistem ini.</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <div class="kaki">
+        Sebarang masalah akses, sila hubungi <b>Unit Teknologi Maklumat, Hospital Serian</b>.
+        Tel: 011-24097634
+    </div>
+
+</div>
+
+<script>
+    // QR mengandungi URL yang telah dienkod (%20 untuk ruang kosong) supaya
+    // semua aplikasi pengimbas boleh membukanya tanpa masalah — teks yang
+    // dipaparkan pada poster pula dikekalkan dalam bentuk mudah dibaca.
+    new QRCode(document.getElementById('qr'), {
+        text: 'https://intranethser.duckdns.org/intranet%20hser/',
+        width: 190,
+        height: 190,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H   // tahap tinggi — masih boleh diimbas walaupun poster tercalar
+    });
+</script>
+
+</body>
+</html>
